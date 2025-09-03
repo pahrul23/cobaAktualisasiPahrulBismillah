@@ -1,0 +1,23 @@
+/* PERBAIKAN - Ganti index.css dengan ini */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #f8fafc; /* PERBAIKAN: Light theme */
+  color: #1a202c; /* PERBAIKAN: Dark text */
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* PERBAIKAN: Hapus display flex dan place-items */
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
