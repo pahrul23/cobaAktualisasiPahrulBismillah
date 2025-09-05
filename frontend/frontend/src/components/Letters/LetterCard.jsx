@@ -1,10 +1,26 @@
 // Path: /frontend/src/components/Letters/LetterCard.jsx
-import { useState } from 'react'
-import LetterDetailModal from './LetterDetailModal'
+import { useNavigate } from 'react-router-dom'
+import DisposisiButton from './DisposisiButton'
 
 const LetterCard = ({ letter, onUpdate }) => {
-  const [modalOpen, setModalOpen] = useState(false)
-  const [modalMode, setModalMode] = useState('view')
+  const navigate = useNavigate()
+
+  // 🔍 Debug render state
+  console.log('LetterCard render:', { 
+    letterId: letter.id
+  })
+
+  // Handler tombol Detail - GANTI: navigate instead of modal
+  const handleViewClick = () => {
+    console.log('View button clicked - navigating to:', `/letters/${letter.id}`)
+    navigate(`/letters/${letter.id}`)
+  }
+
+  // Handler tombol Edit - GANTI: navigate with edit mode
+  const handleEditClick = () => {
+    console.log('Edit button clicked - navigating to:', `/letters/${letter.id}`)
+    navigate(`/letters/${letter.id}`, { state: { editMode: true } })
+  }
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -61,11 +77,6 @@ const LetterCard = ({ letter, onUpdate }) => {
     })
   }
 
-  const handleDownloadDisposisi = () => {
-    const url = `http://localhost:4000/api/dispositions/${letter.id}/pdf`
-    window.open(url, '_blank')
-  }
-
   return (
     <div style={{
       background: 'white',
@@ -79,15 +90,14 @@ const LetterCard = ({ letter, onUpdate }) => {
       fontFamily: "'Poppins', sans-serif"
     }}
     onMouseEnter={(e) => {
-      e.target.style.transform = 'translateY(-4px)'
-      e.target.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15)'
+      e.currentTarget.style.transform = 'translateY(-4px)'
+      e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15)'
     }}
     onMouseLeave={(e) => {
-      e.target.style.transform = 'translateY(0)'
-      e.target.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)'
+      e.currentTarget.style.transform = 'translateY(0)'
+      e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)'
     }}
     >
-      
       {/* Header dengan gradient */}
       <div style={{
         background: jenisGradient,
@@ -95,7 +105,6 @@ const LetterCard = ({ letter, onUpdate }) => {
         color: 'white',
         position: 'relative'
       }}>
-        
         {/* Background decoration */}
         <div style={{
           position: 'absolute',
@@ -174,9 +183,7 @@ const LetterCard = ({ letter, onUpdate }) => {
       </div>
 
       {/* Content Body */}
-      <div style={{
-        padding: '24px'
-      }}>
+      <div style={{ padding: '24px' }}>
         <h3 style={{
           margin: '0 0 12px 0',
           fontSize: '16px',
@@ -265,10 +272,7 @@ const LetterCard = ({ letter, onUpdate }) => {
           gap: '8px'
         }}>
           <button 
-            onClick={() => {
-              setModalMode('view')
-              setModalOpen(true)
-            }}
+            onClick={handleViewClick}
             style={{
               padding: '10px 8px',
               background: '#f8fafc',
@@ -295,10 +299,7 @@ const LetterCard = ({ letter, onUpdate }) => {
           </button>
           
           <button 
-            onClick={() => {
-              setModalMode('edit')
-              setModalOpen(true)
-            }}
+            onClick={handleEditClick}
             style={{
               padding: '10px 8px',
               background: jenisGradient,
@@ -318,37 +319,19 @@ const LetterCard = ({ letter, onUpdate }) => {
             ✏️ Edit
           </button>
 
-          <button 
-            onClick={handleDownloadDisposisi}
-            style={{
-              padding: '10px 8px',
-              background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
-              border: 'none',
-              borderRadius: '10px',
-              fontSize: '11px',
-              fontWeight: '600',
-              color: 'white',
-              cursor: 'pointer',
-              transition: 'transform 0.2s ease',
-              fontFamily: "'Poppins', sans-serif",
-              textAlign: 'center'
-            }}
-            onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
-            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-          >
-            📄 File Disposisi
-          </button>
+          {/* Disposisi Button */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <DisposisiButton
+              letterId={letter.id}
+              size="small"
+              variant="primary"
+              showText={false}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Modal */}
-      <LetterDetailModal
-        letter={letter}
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onUpdate={onUpdate}
-        mode={modalMode}
-      />
+      {/* HAPUS: Modal sudah tidak diperlukan */}
     </div>
   )
 }

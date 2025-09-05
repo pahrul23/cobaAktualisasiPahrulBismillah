@@ -1,6 +1,7 @@
 // Path: /frontend/src/components/Letters/LetterDetailModal.jsx
 import { useState, useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
+import DisposisiButton from './DisposisiButton';
 
 const LetterDetailModal = ({
   letter,
@@ -265,7 +266,7 @@ const LetterDetailModal = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 1000,
+        zIndex: 9999,
         padding: "20px",
         backdropFilter: "blur(4px)",
       }}
@@ -275,8 +276,8 @@ const LetterDetailModal = ({
           background: "white",
           borderRadius: "24px",
           width: "100%",
-          maxWidth: "900px",
-          maxHeight: "90vh",
+          maxWidth: "1200px",
+          maxHeight: "95vh",
           overflow: "hidden",
           boxShadow: "0 25px 50px rgba(0, 0, 0, 0.2)",
           fontFamily: "'Poppins', sans-serif",
@@ -429,6 +430,7 @@ const LetterDetailModal = ({
               flex: 1,
               overflowY: "auto",
               padding: "32px",
+              // maxHeight: "calc(95vh - 200px)",
             }}
           >
             {editMode ? (
@@ -2985,6 +2987,14 @@ const LetterDetailModal = ({
               >
                 Edit Surat
               </button>
+            )}
+
+            {!editMode && (
+              <DisposisiButton
+                letterId={letter.id}
+                size="medium"
+                variant="primary"
+              />
             )}
 
             <button

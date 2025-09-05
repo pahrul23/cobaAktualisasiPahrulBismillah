@@ -865,6 +865,416 @@ const lettersController = {
       });
     }
   },
+
+  
+  // GANTI function generatePDF dengan ini:
+  async generatePDF(req, res) {
+  try {
+    const { letterId } = req.params
+    console.log('=== GENERATING PDF FOR LETTER ID:', letterId, '===')
+    
+    // Get letter data
+    const query = `
+      SELECT 
+        l.*,
+        u.name as created_by_name,
+        lp.jenis_pengaduan, lp.tingkat_urgensi,
+        lu.hari_tanggal_acara, lu.jenis_acara
+      FROM letters l
+      LEFT JOIN users u ON l.created_by = u.id
+      LEFT JOIN letter_pengaduan lp ON l.id = lp.letter_id
+      LEFT JOIN letter_undangan lu ON l.id = lu.letter_id
+      WHERE l.id = ?
+    `
+    
+    const [letters] = await db.execute(query, [letterId])
+    
+    if (letters.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Surat tidak ditemukan'
+      })
+    }
+
+    const letter = letters[0]
+    
+    // Format date helper
+    const formatDate = (dateString) => {
+      return new Date(dateString).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: '2-digit', 
+        year: 'numeric'
+      })
+    }
+
+    // HTML dengan optimasi minimal untuk 1 halaman
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        @page {
+          size: A4;
+          margin: 8mm; /* Dikurangi dari 15mm ke 8mm */
+        }
+        body {
+          font-family: Arial, sans-serif;
+          font-size: 12px; /* Dikurangi dari 13px ke 12px */
+          line-height: 1.3; /* Dikurangi dari 1.4 ke 1.3 */
+          margin: 0;
+          padding: 0;
+          color: #000;
+        }
+        .header {
+          border: 2px solid #000;
+          padding: 8px; /* Dikurangi dari 15px ke 8px */
+          margin-bottom: 0;
+          display: table;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .header-left {
+          display: table-cell;
+          width: 80px;
+          vertical-align: middle;
+          text-align: center;
+        }
+        .header-center {
+          display: table-cell;
+          text-align: center;
+          vertical-align: middle;
+        }
+        .header-right {
+          display: table-cell;
+          width: 80px;
+        }
+        .logo {
+          width: 50px; /* Dikurangi dari 60px ke 50px */
+          height: 50px;
+        }
+        .header h2 {
+          margin: 3px 0; /* Dikurangi dari 5px ke 3px */
+          font-size: 14px; /* Dikurangi dari 15px ke 14px */
+          font-weight: bold;
+        }
+        .header p {
+          margin: 2px 0; /* Dikurangi dari 3px ke 2px */
+          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+        }
+        .title-section {
+          background-color: #f0f0f0;
+          text-align: center;
+          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          font-weight: bold;
+          border: 2px solid #000;
+          border-top: none;
+          font-size: 13px; /* Dikurangi dari 14px ke 13px */
+          box-sizing: border-box;
+        }
+        .form-section {
+          border: 2px solid #000;
+          border-top: none;
+          box-sizing: border-box;
+        }
+        .form-row {
+          border-bottom: 1px solid #000;
+          min-height: 28px; /* Dikurangi dari 35px ke 28px */
+          display: table;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .form-row:last-child {
+          border-bottom: none;
+        }
+        .form-label {
+          display: table-cell;
+          width: 40%;
+          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          border-right: 1px solid #000;
+          vertical-align: middle;
+          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          box-sizing: border-box;
+        }
+        .form-value {
+          display: table-cell;
+          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          vertical-align: middle;
+          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          box-sizing: border-box;
+        }
+        .form-row-split {
+          border-bottom: 1px solid #000;
+          min-height: 28px; /* Dikurangi dari 35px ke 28px */
+          display: table;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .form-label-left {
+          display: table-cell;
+          width: 30%;
+          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          border-right: 1px solid #000;
+          vertical-align: middle;
+          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          box-sizing: border-box;
+        }
+        .form-value-left {
+          display: table-cell;
+          width: 35%;
+          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          border-right: 1px solid #000;
+          vertical-align: middle;
+          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          box-sizing: border-box;
+        }
+        .form-label-right {
+          display: table-cell;
+          width: 15%;
+          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          border-right: 1px solid #000;
+          vertical-align: middle;
+          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          box-sizing: border-box;
+        }
+        .form-value-right {
+          display: table-cell;
+          width: 20%;
+          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          vertical-align: middle;
+          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          box-sizing: border-box;
+        }
+        .disposisi-container {
+          border: 2px solid #000;
+          border-top: none;
+          display: table;
+          width: 100%;
+          height: 250px; /* DRASTIS: Dikurangi dari 400px ke 250px */
+          box-sizing: border-box;
+        }
+        .disposisi-col {
+          display: table-cell;
+          padding: 6px; /* Dikurangi dari 12px ke 6px */
+          vertical-align: top;
+          border-right: 1px solid #000; /* FIXED: Border kanan ditambahkan */
+          font-size: 9px; /* Dikurangi dari 11px ke 9px */
+          box-sizing: border-box;
+        }
+        .disposisi-col:last-child {
+          border-right: none; /* Kolom terakhir tetap tanpa border kanan */
+        }
+        .disposisi-left {
+          width: 35%;
+        }
+        .disposisi-center {
+          width: 40%;
+        }
+        .disposisi-right {
+          width: 25%;
+          text-align: center;
+        }
+        .checkbox-item {
+          margin: 2px 0; /* Dikurangi dari 5px ke 2px */
+          font-size: 11px; /* Dikurangi dari 11px ke 9px */
+          line-height: 1.2;
+        }
+        .col-title {
+          font-weight: bold;
+          text-align: center;
+          margin-bottom: 8px; /* Dikurangi dari 15px ke 8px */
+          font-size: 10px; /* Dikurangi dari 12px ke 10px */
+        }
+        .signature-box {
+          height: 60px; /* Dikurangi dari 100px ke 60px */
+          border: 1px solid #000;
+          margin-top: 10px; /* Dikurangi dari 20px ke 10px */
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .lines {
+          margin-top: 8px; /* Dikurangi dari 25px ke 8px */
+          font-size: 9px; /* Dikurangi dari 11px ke 9px */
+        }
+      </style>
+    </head>
+    <body>
+      <!-- Header with Logo -->
+      <div class="header">
+        <div class="header-left">
+          <img src="./frontend/frontend/src/assets/LogoSetjen.png" alt="Logo DPD RI" class="logo" />
+        </div>
+        <div class="header-center">
+          <h2>KETUA</h2>
+          <h2>DEWAN PERWAKILAN DAERAH</h2>
+          <h2>REPUBLIK INDONESIA</h2>
+          <p>Jl. Jenderal Gatot Subroto No. 6 Jakarta - 10270</p>
+        </div>
+        <div class="header-right"></div>
+      </div>
+
+      <!-- Title -->
+      <div class="title-section">
+        LEMBAR DISPOSISI KETUA DPD RI
+      </div>
+
+      <!-- Form Information -->
+      <div class="form-section">
+        <div class="form-row-split">
+          <div class="form-label-left">Nomor Agenda/Registrasi</div>
+          <div class="form-value-left">: ${letter.no_disposisi}</div>
+          <div class="form-label-right">Tkt. Keamanan</div>
+          <div class="form-value-right">:</div>
+        </div>
+        
+        <div class="form-row-split">
+          <div class="form-label-left">Tanggal Penerimaan</div>
+          <div class="form-value-left">: ${formatDate(letter.tanggal_terima)}</div>
+          <div class="form-label-right">Tgl. Penyelesaian</div>
+          <div class="form-value-right">: ..................</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label">Asal Disposisi/Surat/Nota Dinas/Memorandum</div>
+          <div class="form-value">: ${letter.asal_surat}</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label">Tanggal dan Nomor Surat/Nota Dinas/Memorandum</div>
+          <div class="form-value">: ${formatDate(letter.tanggal_surat)} / ${letter.no_surat}</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label">Dari</div>
+          <div class="form-value">: ${letter.asal_surat}</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label">Ringkasan Isi</div>
+          <div class="form-value">: ${letter.perihal}</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label">Lampiran</div>
+          <div class="form-value">: ${letter.file_surat_name || '-'}</div>
+        </div>
+      </div>
+
+      <!-- Disposisi Section -->
+      <div class="disposisi-container">
+        <div class="disposisi-col disposisi-left">
+          <div class="col-title">Disposisi</div>
+          <div class="checkbox-item">☐ Hadir</div>
+          <div class="checkbox-item">☐ Hadir Virtual</div>
+          <div class="checkbox-item">☐ Tidak Hadir</div>
+          <div class="checkbox-item">☐ Kirim Bunga</div>
+          <div class="checkbox-item">☐ Temui Saya</div>
+          <div class="checkbox-item">☐ Siapkan Jawaban</div>
+          <div class="checkbox-item">☐ Siapkan Draft</div>
+          <div class="checkbox-item">☐ Siapkan Protokol</div>
+          <div class="checkbox-item">☐ Check</div>
+          <div class="checkbox-item">☐ Humas</div>
+          <div class="checkbox-item">☐ Siapkan Foto Video</div>
+          <div class="checkbox-item">☐ Siapkan Media</div>
+          <div class="checkbox-item">☐ Untuk Dipelajari</div>
+          <div class="checkbox-item">☐ Untuk Diketahui</div>
+          <div class="checkbox-item">☐ Untuk Diselesaikan</div>
+          <div class="checkbox-item">☐ Dapat Disetujui</div>
+          <div class="checkbox-item">☐ Harap Dipenuhi</div>
+          <div class="checkbox-item">☐ Koordinasikan</div>
+          <div class="checkbox-item">☐ File</div>
+          <div class="lines">
+            <div>…………………………….</div>
+            <div>…………………………….</div>
+            <div>…………………………….</div>
+          </div>
+        </div>
+
+        <div class="disposisi-col disposisi-center">
+          <div class="col-title">Diteruskan Kepada :</div>
+          <div class="checkbox-item">☐ Wakil Ketua Bid. I</div>
+          <div class="checkbox-item">☐ Wakil Ketua Bid. II</div>
+          <div class="checkbox-item">☐ Wakil Ketua Bid. III</div>
+          <div class="checkbox-item">☐ Sesjen</div>
+          <div class="checkbox-item">☐ Deputi Persidangan</div>
+          <div class="checkbox-item">☐ Deputi Administrasi</div>
+          <div class="checkbox-item">☐ Staf Khusus</div>
+          <div class="checkbox-item">☐ Komite I</div>
+          <div class="checkbox-item">☐ Komite II</div>
+          <div class="checkbox-item">☐ Komite III</div>
+          <div class="checkbox-item">☐ Komite IV</div>
+          <div class="checkbox-item">☐ PURT</div>
+          <div class="checkbox-item">☐ Panitia Musyawarah</div>
+          <div class="checkbox-item">☐ PPUU</div>
+          <div class="checkbox-item">☐ BK</div>
+          <div class="checkbox-item">☐ BAP</div>
+          <div class="checkbox-item">☐ BKSP</div>
+          <div class="checkbox-item">☐ BULD</div>
+          <div class="checkbox-item">☐ Karo. Setpim</div>
+          <div class="checkbox-item">☐ Kabag. Set. Ketua</div>
+          <div class="lines">
+            <div>…………………………….</div>
+            <div>…………………………….</div>
+            <div>…………………………….</div>
+          </div>
+        </div>
+
+        <div class="disposisi-col disposisi-right">
+          <div class="col-title">Paraf</div>
+          <div class="signature-box"></div>
+        </div>
+      </div>
+    </body>
+    </html>
+    `
+    
+    const puppeteer = require('puppeteer')
+    
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+    })
+    
+    const page = await browser.newPage()
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
+    
+    // Generate PDF
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      preferCSSPageSize: true,
+      margin: {
+        top: '8mm', /* Dikurangi dari 15mm ke 8mm */
+        right: '8mm',
+        bottom: '8mm',
+        left: '8mm'
+      }
+    })
+    
+    await browser.close()
+    
+    // Set proper headers
+    const fileName = `DISPOSISI_${letter.no_disposisi.replace(/[\/\\]/g, '_')}.pdf`
+    
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Length', pdfBuffer.length)
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
+    
+    res.end(pdfBuffer)
+    console.log('PDF sent successfully, size:', pdfBuffer.length)
+    
+  } catch (error) {
+    console.error('Error generating PDF:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Gagal generate PDF disposisi',
+      error: error.message
+    })
+  }
+},
 };
 
 module.exports = lettersController;

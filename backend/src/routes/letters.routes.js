@@ -31,4 +31,7 @@ router.put('/:id',
 // DELETE /api/letters/:id - Delete letter
 router.delete('/:id', lettersController.deleteLetter)
 
+// Pastikan ada route ini:
+router.get('/:letterId/pdf', lettersController.generatePDF)
+
 module.exports = router

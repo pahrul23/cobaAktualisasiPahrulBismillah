@@ -4,6 +4,7 @@ import { Suspense, lazy } from 'react'
 import Login from './components/Login'
 import StafDashboard from './pages/Dashboard/StafDashboard'
 import LettersList from './pages/Letters/LettersList'
+import LetterDetailPage from './pages/Letters/LetterDetailPage' // ADD: New import
 import ProtectedRoute from './components/ProtectedRoute'
 import useAuth from './hooks/useAuth'
 import DebugLetterForm from './components/Debug/DebugLetterForm'
@@ -30,7 +31,7 @@ const AddLetter = lazy(() =>
 
 function App() {
   const { user, loading } = useAuth()
-  
+
   if (loading) {
     return (
       <div style={{
@@ -52,7 +53,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
-        
+
         {/* Protected Routes */}
         <Route
           path="/dashboard"
@@ -71,7 +72,17 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
+        {/* ADD: New route for letter detail */}
+        <Route
+          path="/letters/:id"
+          element={
+            <ProtectedRoute>
+              <LetterDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* AddLetter route dengan Suspense untuk lazy loading */}
         <Route
           path="/letters/add"
@@ -91,54 +102,54 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* Debug Route */}
-        <Route 
-          path="/debug-form" 
+        <Route
+          path="/debug-form"
           element={
             <ProtectedRoute>
               <DebugLetterForm />
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Under Development Pages */}
-        <Route 
-          path="/proposals" 
+        <Route
+          path="/proposals"
           element={
             <ProtectedRoute>
               <ProposalsList />
             </ProtectedRoute>
-          } 
+          }
         />
         
-        <Route 
-          path="/agenda" 
+        <Route
+          path="/agenda"
           element={
             <ProtectedRoute>
               <AgendaList />
             </ProtectedRoute>
-          } 
+          }
         />
         
-        <Route 
-          path="/reports" 
+        <Route
+          path="/reports"
           element={
             <ProtectedRoute>
               <ReportsList />
             </ProtectedRoute>
-          } 
+          }
         />
         
-        <Route 
-          path="/settings" 
+        <Route
+          path="/settings"
           element={
             <ProtectedRoute>
               <Settings />
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Default Route */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
