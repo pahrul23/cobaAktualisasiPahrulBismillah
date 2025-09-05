@@ -127,6 +127,24 @@ const LetterDetailModal = ({
       year: "numeric",
     });
   };
+  // Format date untuk input HTML
+  const formatDateForInput = (dateValue) => {
+    if (!dateValue) return "";
+
+    // Jika sudah format YYYY-MM-DD, return as is
+    if (
+      typeof dateValue === "string" &&
+      dateValue.match(/^\d{4}-\d{2}-\d{2}$/)
+    ) {
+      return dateValue;
+    }
+
+    // Convert ke format YYYY-MM-DD
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return "";
+
+    return date.toISOString().split("T")[0];
+  };
 
   const handleSave = async () => {
     setLoading(true);
@@ -137,9 +155,25 @@ const LetterDetailModal = ({
       const submitData = new FormData();
 
       // Append form fields
+      // Append form fields dengan format tanggal yang benar
       Object.keys(formData).forEach((key) => {
         if (formData[key] !== null && formData[key] !== undefined) {
-          submitData.append(key, formData[key]);
+          let value = formData[key];
+
+          // Format semua field tanggal ke YYYY-MM-DD
+          if (
+            key === "tanggal_terima" ||
+            key === "tanggal_surat" ||
+            key === "hari_tanggal" ||
+            key === "audiensi_tanggal" ||
+            key === "hari_tanggal_acara" ||
+            key === "tanggal_kegiatan" ||
+            key === "batas_waktu_respon"
+          ) {
+            value = formatDateForInput(value);
+          }
+
+          submitData.append(key, value);
         }
       });
 
@@ -167,8 +201,9 @@ const LetterDetailModal = ({
         setEditMode(false);
         onUpdate();
         setTimeout(() => {
+          setMessage("");
           onClose();
-        }, 1500);
+        }, 3000); // Ubah dari 1500 menjadi 3000 (3 detik)
       } else {
         setMessage(data.message || "Gagal mengupdate surat");
       }
@@ -626,6 +661,1017 @@ const LetterDetailModal = ({
                     </div>
                   )}
                 </div>
+                {/* Field Tambahan per Jenis Surat di Edit Mode - TAMBAHKAN INI */}
+
+                {/* AUDIENSI */}
+                {formData.jenis === "audiensi" && (
+                  <div
+                    style={{
+                      marginTop: "20px",
+                      padding: "20px",
+                      background: "#f0fdf4",
+                      borderRadius: "16px",
+                      border: "2px solid #10b981",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: "0 0 16px 0",
+                        fontSize: "16px",
+                        fontWeight: "700",
+                        color: "#059669",
+                      }}
+                    >
+                      Edit Field Audiensi
+                    </h3>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(250px, 1fr))",
+                        gap: "16px",
+                      }}
+                    >
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Hari/Tanggal
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.hari_tanggal || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              hari_tanggal: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Pukul
+                        </label>
+                        <input
+                          type="time"
+                          value={formData.pukul || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, pukul: e.target.value })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Tempat
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.tempat || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, tempat: e.target.value })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Nama Pemohon
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.nama_pemohon || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              nama_pemohon: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Instansi/Organisasi
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.instansi_organisasi || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              instansi_organisasi: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Jumlah Peserta
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.jumlah_peserta || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              jumlah_peserta: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ marginTop: "16px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: "#374151",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        Topik Audiensi
+                      </label>
+                      <textarea
+                        value={formData.topik_audiensi || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            topik_audiensi: e.target.value,
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "12px 16px",
+                          border: "2px solid #e5e7eb",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          outline: "none",
+                          minHeight: "80px",
+                          resize: "vertical",
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* UNDANGAN */}
+                {formData.jenis === "undangan" && (
+                  <div
+                    style={{
+                      marginTop: "20px",
+                      padding: "20px",
+                      background: "#f0f9ff",
+                      borderRadius: "16px",
+                      border: "2px solid #0ea5e9",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: "0 0 16px 0",
+                        fontSize: "16px",
+                        fontWeight: "700",
+                        color: "#0369a1",
+                      }}
+                    >
+                      Edit Field Undangan
+                    </h3>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(250px, 1fr))",
+                        gap: "16px",
+                      }}
+                    >
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Hari/Tanggal Acara
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.hari_tanggal_acara || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              hari_tanggal_acara: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Pukul
+                        </label>
+                        <input
+                          type="time"
+                          value={formData.pukul || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, pukul: e.target.value })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Tempat
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.tempat || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, tempat: e.target.value })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Jenis Acara
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.jenis_acara || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              jenis_acara: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Dress Code
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.dress_code || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              dress_code: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          RSVP Required
+                        </label>
+                        <select
+                          value={formData.rsvp_required || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              rsvp_required: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <option value="">Pilih</option>
+                          <option value="ya">Ya</option>
+                          <option value="tidak">Tidak</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: "16px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: "#374151",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        Dokumentasi
+                      </label>
+                      <textarea
+                        value={formData.dokumentasi || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            dokumentasi: e.target.value,
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "12px 16px",
+                          border: "2px solid #e5e7eb",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          outline: "none",
+                          minHeight: "80px",
+                          resize: "vertical",
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* PROPOSAL */}
+                {formData.jenis === "proposal" && (
+                  <div
+                    style={{
+                      marginTop: "20px",
+                      padding: "20px",
+                      background: "#fff7ed",
+                      borderRadius: "16px",
+                      border: "2px solid #f97316",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: "0 0 16px 0",
+                        fontSize: "16px",
+                        fontWeight: "700",
+                        color: "#ea580c",
+                      }}
+                    >
+                      Edit Field Proposal
+                    </h3>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(250px, 1fr))",
+                        gap: "16px",
+                      }}
+                    >
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Nama Pengirim
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.nama_pengirim || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              nama_pengirim: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Instansi/Lembaga
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.instansi_lembaga_komunitas || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              instansi_lembaga_komunitas: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Judul Proposal
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.judul_proposal || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              judul_proposal: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Jenis Kegiatan
+                        </label>
+                        <select
+                          value={formData.jenis_kegiatan || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              jenis_kegiatan: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <option value="">Pilih jenis kegiatan</option>
+                          <option value="sosial">Sosial</option>
+                          <option value="pendidikan">Pendidikan</option>
+                          <option value="kesehatan">Kesehatan</option>
+                          <option value="ekonomi">Ekonomi</option>
+                          <option value="budaya">Budaya</option>
+                          <option value="lingkungan">Lingkungan</option>
+                          <option value="lainnya">Lainnya</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Tanggal Kegiatan
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.tanggal_kegiatan || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              tanggal_kegiatan: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Total Anggaran
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.total_anggaran || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              total_anggaran: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* PENGADUAN */}
+                {formData.jenis === "pengaduan" && (
+                  <div
+                    style={{
+                      marginTop: "20px",
+                      padding: "20px",
+                      background: "#fef3c7",
+                      borderRadius: "16px",
+                      border: "2px solid #f59e0b",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: "0 0 16px 0",
+                        fontSize: "16px",
+                        fontWeight: "700",
+                        color: "#92400e",
+                      }}
+                    >
+                      Edit Field Pengaduan
+                    </h3>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(250px, 1fr))",
+                        gap: "16px",
+                      }}
+                    >
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Jenis Pengaduan
+                        </label>
+                        <select
+                          value={formData.jenis_pengaduan || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              jenis_pengaduan: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <option value="">Pilih jenis pengaduan</option>
+                          <option value="pelayanan_publik">
+                            Pelayanan Publik
+                          </option>
+                          <option value="korupsi">Korupsi</option>
+                          <option value="lingkungan">Lingkungan</option>
+                          <option value="infrastruktur">Infrastruktur</option>
+                          <option value="lainnya">Lainnya</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Tingkat Urgensi
+                        </label>
+                        <select
+                          value={formData.tingkat_urgensi || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              tingkat_urgensi: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <option value="">Pilih tingkat urgensi</option>
+                          <option value="rendah">Rendah</option>
+                          <option value="sedang">Sedang</option>
+                          <option value="tinggi">Tinggi</option>
+                          <option value="sangat_tinggi">Sangat Tinggi</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* PEMBERITAHUAN */}
+                {formData.jenis === "pemberitahuan" && (
+                  <div
+                    style={{
+                      marginTop: "20px",
+                      padding: "20px",
+                      background: "#fef2f2",
+                      borderRadius: "16px",
+                      border: "2px solid #ef4444",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: "0 0 16px 0",
+                        fontSize: "16px",
+                        fontWeight: "700",
+                        color: "#dc2626",
+                      }}
+                    >
+                      Edit Field Pemberitahuan
+                    </h3>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(250px, 1fr))",
+                        gap: "16px",
+                      }}
+                    >
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Kategori
+                        </label>
+                        <select
+                          value={formData.kategori_pemberitahuan || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              kategori_pemberitahuan: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <option value="">Pilih kategori</option>
+                          <option value="informasi_umum">Informasi Umum</option>
+                          <option value="kebijakan_baru">Kebijakan Baru</option>
+                          <option value="perubahan_jadwal">
+                            Perubahan Jadwal
+                          </option>
+                          <option value="peringatan">Peringatan</option>
+                          <option value="lainnya">Lainnya</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Tingkat Prioritas
+                        </label>
+                        <select
+                          value={formData.tingkat_prioritas || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              tingkat_prioritas: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <option value="">Pilih prioritas</option>
+                          <option value="rendah">Rendah</option>
+                          <option value="normal">Normal</option>
+                          <option value="tinggi">Tinggi</option>
+                          <option value="mendesak">Mendesak</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Batas Waktu Respon
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.batas_waktu_respon || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              batas_waktu_respon: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Follow Up Required
+                        </label>
+                        <select
+                          value={formData.follow_up_required || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              follow_up_required: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <option value="">Pilih</option>
+                          <option value="ya">Ya</option>
+                          <option value="tidak">Tidak</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* AKHIR TAMBAHAN */}
               </div>
             ) : (
               // View Mode
@@ -1870,7 +2916,7 @@ const LetterDetailModal = ({
                   }}
                 >
                   <div style={{ marginBottom: "8px" }}>
-                    <strong>Dibuat oleh:</strong> {letter.created_by_name}
+                    {/* <strong>Dibuat oleh:</strong> {letter.created_by_name} */}
                   </div>
                   <div>
                     <strong>Dibuat pada:</strong>{" "}

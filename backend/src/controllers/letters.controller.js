@@ -1,191 +1,250 @@
-const db = require('../config/database')
-const multer = require('multer')
-const path = require('path')
-const fs = require('fs')
+const db = require("../config/database");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = 'uploads/letters'
+    const uploadDir = "uploads/letters";
     if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true })
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
-    cb(null, uploadDir)
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, uniqueSuffix + path.extname(file.originalname))
-  }
-})
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
 
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|pdf|doc|docx/
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase())
-    const mimetype = allowedTypes.test(file.mimetype)
-    
+    const allowedTypes = /jpeg|jpg|png|pdf|doc|docx/;
+    const extname = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mimetype = allowedTypes.test(file.mimetype);
+
     if (mimetype && extname) {
-      return cb(null, true)
+      return cb(null, true);
     } else {
-      cb(new Error('Only .jpeg, .jpg, .png, .pdf, .doc, .docx files are allowed'))
+      cb(
+        new Error("Only .jpeg, .jpg, .png, .pdf, .doc, .docx files are allowed")
+      );
     }
-  }
-})
+  },
+});
 
 const lettersController = {
   // Middleware untuk upload file
-  uploadFile: upload.single('file_surat'),
+  uploadFile: upload.single("file_surat"),
 
   // Create new letter dengan field tambahan
   async createLetter(req, res) {
-    console.log('=== DEBUG FILE UPLOAD - CREATE LETTER ===')
-    console.log('req.body:', req.body)
-    console.log('req.file:', req.file)
-    console.log('req.files:', req.files)
-    console.log('Headers:', req.headers)
-    console.log('========================================')
-    
-    const connection = await db.getConnection()
-    
+    console.log("=== DEBUG FILE UPLOAD - CREATE LETTER ===");
+    console.log("req.body:", req.body);
+    console.log("req.file:", req.file);
+    console.log("req.files:", req.files);
+    console.log("Headers:", req.headers);
+    console.log("========================================");
+
+    const connection = await db.getConnection();
+
     try {
-      await connection.beginTransaction()
+      await connection.beginTransaction();
 
       const {
-        jenis, no_disposisi, no_surat, asal_surat, perihal,
-        tanggal_terima, tanggal_surat, uraian, 
-        keterangan = null, 
+        jenis,
+        no_disposisi,
+        no_surat,
+        asal_surat,
+        perihal,
+        tanggal_terima,
+        tanggal_surat,
+        uraian,
+        keterangan = null,
         label = null,
         created_by = 1, // Default user ID, sesuaikan dengan auth
         ...additionalFields
-      } = req.body
+      } = req.body;
 
-      console.log('Parsed fields:', {
-        jenis, no_disposisi, no_surat, asal_surat, perihal,
-        tanggal_terima, tanggal_surat, uraian, keterangan, label, created_by
-      })
+      console.log("Parsed fields:", {
+        jenis,
+        no_disposisi,
+        no_surat,
+        asal_surat,
+        perihal,
+        tanggal_terima,
+        tanggal_surat,
+        uraian,
+        keterangan,
+        label,
+        created_by,
+      });
 
       // Validate required fields
       if (!jenis || !no_surat || !asal_surat || !perihal || !uraian) {
-        console.log('Validation failed - missing required fields')
-        await connection.rollback()
+        console.log("Validation failed - missing required fields");
+        await connection.rollback();
         return res.status(400).json({
           success: false,
-          message: 'Field wajib tidak lengkap'
-        })
+          message: "Field wajib tidak lengkap",
+        });
       }
 
-      // Handle file upload
-      let filePath = null
-      let fileName = null
-      let fileSize = null
+      // GANTI baris 72-82
+      // Handle file upload - TAMBAHKAN VALIDASI WAJIB
+      let filePath = null;
+      let fileName = null;
+      let fileSize = null;
 
       if (req.file) {
-        filePath = req.file.path
-        fileName = req.file.originalname
-        fileSize = req.file.size
-        console.log('File uploaded:', { filePath, fileName, fileSize })
+        filePath = req.file.path;
+        fileName = req.file.originalname;
+        fileSize = req.file.size;
+        console.log("File uploaded:", { filePath, fileName, fileSize });
       } else {
-        console.log('No file uploaded')
+        // TAMBAHKAN INI - validasi wajib file untuk create
+        console.log("No file uploaded - CREATE requires file");
+        await connection.rollback();
+        return res.status(400).json({
+          success: false,
+          message: "File surat wajib diupload",
+        });
       }
-
       // Insert main letter record
       const letterQuery = `
         INSERT INTO letters (
           jenis, no_disposisi, no_surat, asal_surat, perihal,
           tanggal_terima, tanggal_surat, uraian, keterangan, label,
-          file_path, file_surat, file_surat_name, file_surat_size, created_by
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `
+          file_surat, file_surat_name, file_surat_size, created_by
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
 
-      console.log('Executing query with values:', [
-        jenis, no_disposisi, no_surat, asal_surat, perihal,
-        tanggal_terima, tanggal_surat, uraian, keterangan, label || 'hitam',
-        filePath, fileName, fileSize, created_by
-      ])
+      console.log("Executing query with values:", [
+        jenis,
+        no_disposisi,
+        no_surat,
+        asal_surat,
+        perihal,
+        tanggal_terima,
+        tanggal_surat,
+        uraian,
+        keterangan,
+        label || "hitam",
+        filePath,
+        fileName,
+        fileSize,
+        created_by,
+      ]);
 
       const [letterResult] = await connection.execute(letterQuery, [
-        jenis, no_disposisi, no_surat, asal_surat, perihal,
-        tanggal_terima, tanggal_surat, uraian, keterangan, label || 'hitam',
-        filePath, filePath, fileName, fileSize, created_by
-      ])
+        jenis,
+        no_disposisi,
+        no_surat,
+        asal_surat,
+        perihal,
+        tanggal_terima,
+        tanggal_surat,
+        uraian,
+        keterangan,
+        label || "hitam",
+        filePath,
+        // filePath,
+        fileName,
+        fileSize,
+        created_by,
+      ]);
 
-      const letterId = letterResult.insertId
-      console.log('Letter created with ID:', letterId)
+      const letterId = letterResult.insertId;
+      console.log("Letter created with ID:", letterId);
 
       // Insert additional fields based on jenis surat
-      await lettersController.insertAdditionalFields(connection, letterId, jenis, additionalFields)
+      await lettersController.insertAdditionalFields(
+        connection,
+        letterId,
+        jenis,
+        additionalFields
+      );
 
-      await connection.commit()
-      console.log('Transaction committed successfully')
+      await connection.commit();
+      console.log("Transaction committed successfully");
 
       res.status(201).json({
         success: true,
-        message: 'Surat berhasil dibuat',
+        message: "Surat berhasil dibuat",
         data: {
           id: letterId,
           jenis,
           no_surat,
           no_disposisi,
-          file_info: req.file ? {
-            original_name: fileName,
-            file_path: filePath,
-            file_size: fileSize
-          } : null
-        }
-      })
-
+          file_info: req.file
+            ? {
+                original_name: fileName,
+                file_path: filePath,
+                file_size: fileSize,
+              }
+            : null,
+        },
+      });
     } catch (error) {
-      await connection.rollback()
-      console.error('Error creating letter:', error)
-      
+      await connection.rollback();
+      console.error("Error creating letter:", error);
+
       // Delete uploaded file if error
       if (req.file) {
         fs.unlink(req.file.path, (unlinkError) => {
-          if (unlinkError) console.error('Error deleting file:', unlinkError)
-        })
+          if (unlinkError) console.error("Error deleting file:", unlinkError);
+        });
       }
 
       res.status(500).json({
         success: false,
-        message: 'Terjadi kesalahan saat membuat surat',
-        error: error.message
-      })
+        message: "Terjadi kesalahan saat membuat surat",
+        error: error.message,
+      });
     } finally {
-      connection.release()
+      connection.release();
     }
   },
 
   // Insert additional fields based on letter type
   async insertAdditionalFields(connection, letterId, jenis, fields) {
-    console.log('Inserting additional fields for jenis:', jenis, 'fields:', fields)
-    
+    console.log(
+      "Inserting additional fields for jenis:",
+      jenis,
+      "fields:",
+      fields
+    );
+
     switch (jenis) {
-      case 'pengaduan':
+      case "pengaduan":
         if (fields.jenis_pengaduan || fields.tingkat_urgensi) {
           const query = `
             INSERT INTO letter_pengaduan (letter_id, jenis_pengaduan, tingkat_urgensi)
             VALUES (?, ?, ?)
-          `
+          `;
           await connection.execute(query, [
             letterId,
             fields.jenis_pengaduan || null,
-            fields.tingkat_urgensi || null
-          ])
-          console.log('Pengaduan fields inserted')
+            fields.tingkat_urgensi || null,
+          ]);
+          console.log("Pengaduan fields inserted");
         }
-        break
+        break;
 
-      case 'undangan':
+      case "undangan":
         const undanganQuery = `
           INSERT INTO letter_undangan (
             letter_id, hari_tanggal_acara, pukul, tempat, jenis_acara,
             dress_code, rsvp_required, dokumentasi
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `
+        `;
         await connection.execute(undanganQuery, [
           letterId,
           fields.hari_tanggal_acara || null,
@@ -194,18 +253,18 @@ const lettersController = {
           fields.jenis_acara || null,
           fields.dress_code || null,
           fields.rsvp_required || null,
-          fields.dokumentasi || null
-        ])
-        console.log('Undangan fields inserted')
-        break
+          fields.dokumentasi || null,
+        ]);
+        console.log("Undangan fields inserted");
+        break;
 
-      case 'audiensi':
+      case "audiensi":
         const audiensiQuery = `
           INSERT INTO letter_audiensi (
             letter_id, hari_tanggal, pukul, tempat, nama_pemohon,
             instansi_organisasi, jumlah_peserta, topik_audiensi, dokumentasi
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `
+        `;
         await connection.execute(audiensiQuery, [
           letterId,
           fields.hari_tanggal || null,
@@ -215,12 +274,12 @@ const lettersController = {
           fields.instansi_organisasi || null,
           fields.jumlah_peserta || null,
           fields.topik_audiensi || null,
-          fields.dokumentasi || null
-        ])
-        console.log('Audiensi fields inserted')
-        break
+          fields.dokumentasi || null,
+        ]);
+        console.log("Audiensi fields inserted");
+        break;
 
-      case 'proposal':
+      case "proposal":
         const proposalQuery = `
           INSERT INTO proposals (
             letter_id, nama_pengirim, instansi, instansi_lembaga_komunitas,
@@ -228,7 +287,7 @@ const lettersController = {
             ringkasan, total_anggaran, rekomendasi_dukungan, pic_penanganan,
             nomor_rekening, catatan_tindak_lanjut
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `
+        `;
         await connection.execute(proposalQuery, [
           letterId,
           fields.nama_pengirim || null,
@@ -243,75 +302,78 @@ const lettersController = {
           fields.rekomendasi_dukungan || null,
           fields.pic_penanganan || null,
           fields.nomor_rekening || null,
-          fields.catatan_tindak_lanjut || null
-        ])
-        console.log('Proposal fields inserted')
-        break
+          fields.catatan_tindak_lanjut || null,
+        ]);
+        console.log("Proposal fields inserted");
+        break;
 
-      case 'pemberitahuan':
+      case "pemberitahuan":
         const pemberitahuanQuery = `
           INSERT INTO letter_pemberitahuan (
             letter_id, kategori_pemberitahuan, tingkat_prioritas,
             batas_waktu_respon, follow_up_required
           ) VALUES (?, ?, ?, ?, ?)
-        `
+        `;
         await connection.execute(pemberitahuanQuery, [
           letterId,
           fields.kategori_pemberitahuan || null,
           fields.tingkat_prioritas || null,
           fields.batas_waktu_respon || null,
-          fields.follow_up_required || null
-        ])
-        console.log('Pemberitahuan fields inserted')
-        break
+          fields.follow_up_required || null,
+        ]);
+        console.log("Pemberitahuan fields inserted");
+        break;
     }
   },
 
   // Get all letters dengan field tambahan
   async getAllLetters(req, res) {
     try {
-      const { page = 1, limit = 20, jenis, status, label, q } = req.query
+      const { page = 1, limit = 20, jenis, status, label, q } = req.query;
 
-      let whereConditions = []
-      let queryParams = []
+      let whereConditions = [];
+      let queryParams = [];
 
       // Filter conditions
-      if (jenis && jenis !== 'all') {
-        whereConditions.push('l.jenis = ?')
-        queryParams.push(jenis)
+      if (jenis && jenis !== "all") {
+        whereConditions.push("l.jenis = ?");
+        queryParams.push(jenis);
       }
 
-      if (status && status !== 'all') {
-        whereConditions.push('l.status = ?')
-        queryParams.push(status)
+      if (status && status !== "all") {
+        whereConditions.push("l.status = ?");
+        queryParams.push(status);
       }
 
-      if (label && label !== 'all') {
-        whereConditions.push('l.label = ?')
-        queryParams.push(label)
+      if (label && label !== "all") {
+        whereConditions.push("l.label = ?");
+        queryParams.push(label);
       }
 
       if (q) {
-        whereConditions.push('(l.no_surat LIKE ? OR l.asal_surat LIKE ? OR l.perihal LIKE ?)')
-        queryParams.push(`%${q}%`, `%${q}%`, `%${q}%`)
+        whereConditions.push(
+          "(l.no_surat LIKE ? OR l.asal_surat LIKE ? OR l.perihal LIKE ?)"
+        );
+        queryParams.push(`%${q}%`, `%${q}%`, `%${q}%`);
       }
 
-      const whereClause = whereConditions.length > 0 
-        ? 'WHERE ' + whereConditions.join(' AND ')
-        : ''
+      const whereClause =
+        whereConditions.length > 0
+          ? "WHERE " + whereConditions.join(" AND ")
+          : "";
 
       // Count total records
       const countQuery = `
         SELECT COUNT(*) as total 
         FROM letters l 
         ${whereClause}
-      `
-      const [countResult] = await db.execute(countQuery, queryParams)
-      const totalRecords = countResult[0].total
+      `;
+      const [countResult] = await db.execute(countQuery, queryParams);
+      const totalRecords = countResult[0].total;
 
       // Calculate pagination
-      const offset = (page - 1) * limit
-      const totalPages = Math.ceil(totalRecords / limit)
+      const offset = (page - 1) * limit;
+      const totalPages = Math.ceil(totalRecords / limit);
 
       // Main query dengan JOIN untuk mendapatkan field tambahan
       const query = `
@@ -366,11 +428,11 @@ const lettersController = {
         ${whereClause}
         ORDER BY l.created_at DESC
         LIMIT ? OFFSET ?
-      `
+      `;
 
-      queryParams.push(parseInt(limit), parseInt(offset))
+      queryParams.push(parseInt(limit), parseInt(offset));
 
-      const [letters] = await db.execute(query, queryParams)
+      const [letters] = await db.execute(query, queryParams);
 
       res.json({
         success: true,
@@ -382,25 +444,24 @@ const lettersController = {
             total: totalRecords,
             totalPages,
             hasNext: page < totalPages,
-            hasPrev: page > 1
-          }
-        }
-      })
-
+            hasPrev: page > 1,
+          },
+        },
+      });
     } catch (error) {
-      console.error('Error fetching letters:', error)
+      console.error("Error fetching letters:", error);
       res.status(500).json({
         success: false,
-        message: 'Terjadi kesalahan saat mengambil data surat',
-        error: error.message
-      })
+        message: "Terjadi kesalahan saat mengambil data surat",
+        error: error.message,
+      });
     }
   },
 
   // Get single letter dengan detail
   async getLetterById(req, res) {
     try {
-      const { id } = req.params
+      const { id } = req.params;
 
       const query = `
         SELECT 
@@ -453,151 +514,192 @@ const lettersController = {
         LEFT JOIN proposals p ON l.id = p.letter_id
         LEFT JOIN letter_pemberitahuan lpb ON l.id = lpb.letter_id
         WHERE l.id = ?
-      `
+      `;
 
-      const [letters] = await db.execute(query, [id])
+      const [letters] = await db.execute(query, [id]);
 
       if (letters.length === 0) {
         return res.status(404).json({
           success: false,
-          message: 'Surat tidak ditemukan'
-        })
+          message: "Surat tidak ditemukan",
+        });
       }
 
       res.json({
         success: true,
-        data: letters[0]
-      })
-
+        data: letters[0],
+      });
     } catch (error) {
-      console.error('Error fetching letter:', error)
+      console.error("Error fetching letter:", error);
       res.status(500).json({
         success: false,
-        message: 'Terjadi kesalahan saat mengambil data surat',
-        error: error.message
-      })
+        message: "Terjadi kesalahan saat mengambil data surat",
+        error: error.message,
+      });
     }
   },
 
   // Update letter
   async updateLetter(req, res) {
-    console.log('=== DEBUG UPDATE LETTER ===')
-    console.log('req.params:', req.params)
-    console.log('req.body:', req.body)
-    console.log('req.file:', req.file)
-    console.log('===========================')
-    
-    const connection = await db.getConnection()
-    
-    try {
-      await connection.beginTransaction()
+    console.log("=== DEBUG UPDATE LETTER ===");
+    console.log("req.params:", req.params);
+    console.log("req.body:", req.body);
+    console.log("req.file:", req.file);
+    console.log("===========================");
 
-      const { id } = req.params
+    const connection = await db.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      const { id } = req.params;
       const {
-        no_disposisi, no_surat, asal_surat, perihal,
-        tanggal_terima, tanggal_surat, uraian, keterangan, label, status,
+        no_disposisi,
+        no_surat,
+        asal_surat,
+        perihal,
+        tanggal_terima,
+        tanggal_surat,
+        uraian,
+        keterangan,
+        label,
+        status,
         ...additionalFields
-      } = req.body
+      } = req.body;
 
       // Handle file update
-      let filePath = null
-      let fileName = null
-      let fileSize = null
-      
+      // Handle file update
+      let shouldUpdateFile = false;
+      let filePath = null;
+      let fileName = null;
+      let fileSize = null;
+
       if (req.file) {
-        filePath = req.file.path
-        fileName = req.file.originalname
-        fileSize = req.file.size
-        console.log('New file uploaded for update:', { filePath, fileName, fileSize })
+        shouldUpdateFile = true;
+        filePath = req.file.path;
+        fileName = req.file.originalname;
+        fileSize = req.file.size;
+        console.log("New file uploaded for update:", {
+          filePath,
+          fileName,
+          fileSize,
+        });
       }
 
       // Update main letter record
       let letterQuery = `
-        UPDATE letters 
-        SET no_disposisi = ?, no_surat = ?, asal_surat = ?, perihal = ?,
-            tanggal_terima = ?, tanggal_surat = ?, uraian = ?, keterangan = ?,
-            label = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-      `
+  UPDATE letters 
+  SET no_disposisi = ?, no_surat = ?, asal_surat = ?, perihal = ?,
+      tanggal_terima = ?, tanggal_surat = ?, uraian = ?, keterangan = ?,
+      label = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+`;
       let queryParams = [
-        no_disposisi, no_surat, asal_surat, perihal,
-        tanggal_terima, tanggal_surat, uraian, keterangan, label, status
-      ]
+        no_disposisi,
+        no_surat,
+        asal_surat,
+        perihal,
+        tanggal_terima,
+        tanggal_surat,
+        uraian,
+        keterangan,
+        label,
+        status,
+      ];
 
-      // Add file fields if new file uploaded
-      if (req.file) {
-        letterQuery += `, file_surat = ?, file_surat_name = ?, file_surat_size = ?`
-        queryParams.push(filePath, fileName, fileSize)
+      // HANYA update file fields jika ada file baru
+      if (shouldUpdateFile) {
+        letterQuery += `, file_surat = ?, file_surat_name = ?, file_surat_size = ?`;
+        queryParams.push(filePath, fileName, fileSize);
       }
 
-      letterQuery += ` WHERE id = ?`
-      queryParams.push(id)
+      letterQuery += ` WHERE id = ?`;
+      queryParams.push(id);
 
-      await connection.execute(letterQuery, queryParams)
+      await connection.execute(letterQuery, queryParams);
 
       // Get letter jenis to update additional fields
       const [letterResult] = await connection.execute(
-        'SELECT jenis FROM letters WHERE id = ?', [id]
-      )
+        "SELECT jenis FROM letters WHERE id = ?",
+        [id]
+      );
 
       if (letterResult.length > 0) {
-        const jenis = letterResult[0].jenis
-        await lettersController.updateAdditionalFields(connection, id, jenis, additionalFields)
+        const jenis = letterResult[0].jenis;
+        await lettersController.updateAdditionalFields(
+          connection,
+          id,
+          jenis,
+          additionalFields
+        );
       }
 
-      await connection.commit()
-      console.log('Letter updated successfully')
+      await connection.commit();
+      console.log("Letter updated successfully");
 
       res.json({
         success: true,
-        message: 'Surat berhasil diupdate',
+        message: "Surat berhasil diupdate",
         data: {
           id,
-          file_updated: req.file ? true : false
-        }
-      })
-
+          file_updated: req.file ? true : false,
+        },
+      });
     } catch (error) {
-      await connection.rollback()
-      console.error('Error updating letter:', error)
+      await connection.rollback();
+      console.error("Error updating letter:", error);
       res.status(500).json({
         success: false,
-        message: 'Terjadi kesalahan saat mengupdate surat',
-        error: error.message
-      })
+        message: "Terjadi kesalahan saat mengupdate surat",
+        error: error.message,
+      });
     } finally {
-      connection.release()
+      connection.release();
     }
   },
 
   // Update additional fields
   async updateAdditionalFields(connection, letterId, jenis, fields) {
-    console.log('Updating additional fields for jenis:', jenis, 'fields:', fields)
-    
+    console.log(
+      "Updating additional fields for jenis:",
+      jenis,
+      "fields:",
+      fields
+    );
+
     switch (jenis) {
-      case 'pengaduan':
+      case "pengaduan":
         await connection.execute(
           `UPDATE letter_pengaduan 
            SET jenis_pengaduan = ?, tingkat_urgensi = ?, updated_at = CURRENT_TIMESTAMP
            WHERE letter_id = ?`,
-          [fields.jenis_pengaduan || null, fields.tingkat_urgensi || null, letterId]
-        )
-        break
+          [
+            fields.jenis_pengaduan || null,
+            fields.tingkat_urgensi || null,
+            letterId,
+          ]
+        );
+        break;
 
-      case 'undangan':
+      case "undangan":
         await connection.execute(
           `UPDATE letter_undangan 
            SET hari_tanggal_acara = ?, pukul = ?, tempat = ?, jenis_acara = ?,
                dress_code = ?, rsvp_required = ?, dokumentasi = ?, updated_at = CURRENT_TIMESTAMP
            WHERE letter_id = ?`,
           [
-            fields.hari_tanggal_acara || null, fields.pukul || null, fields.tempat || null,
-            fields.jenis_acara || null, fields.dress_code || null, fields.rsvp_required || null,
-            fields.dokumentasi || null, letterId
+            fields.hari_tanggal_acara || null,
+            fields.pukul || null,
+            fields.tempat || null,
+            fields.jenis_acara || null,
+            fields.dress_code || null,
+            fields.rsvp_required || null,
+            fields.dokumentasi || null,
+            letterId,
           ]
-        )
-        break
+        );
+        break;
 
-      case 'audiensi':
+      case "audiensi":
         await connection.execute(
           `UPDATE letter_audiensi 
            SET hari_tanggal = ?, pukul = ?, tempat = ?, nama_pemohon = ?,
@@ -605,15 +707,20 @@ const lettersController = {
                dokumentasi = ?, updated_at = CURRENT_TIMESTAMP
            WHERE letter_id = ?`,
           [
-            fields.hari_tanggal || null, fields.pukul || null, fields.tempat || null,
-            fields.nama_pemohon || null, fields.instansi_organisasi || null,
-            fields.jumlah_peserta || null, fields.topik_audiensi || null,
-            fields.dokumentasi || null, letterId
+            fields.hari_tanggal || null,
+            fields.pukul || null,
+            fields.tempat || null,
+            fields.nama_pemohon || null,
+            fields.instansi_organisasi || null,
+            fields.jumlah_peserta || null,
+            fields.topik_audiensi || null,
+            fields.dokumentasi || null,
+            letterId,
           ]
-        )
-        break
+        );
+        break;
 
-      case 'proposal':
+      case "proposal":
         await connection.execute(
           `UPDATE proposals 
            SET nama_pengirim = ?, instansi_lembaga_komunitas = ?, judul_proposal = ?,
@@ -623,70 +730,82 @@ const lettersController = {
                updated_at = CURRENT_TIMESTAMP
            WHERE letter_id = ?`,
           [
-            fields.nama_pengirim || null, fields.instansi_lembaga_komunitas || null,
-            fields.judul_proposal || null, fields.jenis_kegiatan || null,
-            fields.tanggal_kegiatan || null, fields.lokasi_kegiatan || null,
-            fields.ringkasan || null, fields.total_anggaran || null,
-            fields.rekomendasi_dukungan || null, fields.pic_penanganan || null,
-            fields.nomor_rekening || null, fields.catatan_tindak_lanjut || null,
-            letterId
+            fields.nama_pengirim || null,
+            fields.instansi_lembaga_komunitas || null,
+            fields.judul_proposal || null,
+            fields.jenis_kegiatan || null,
+            fields.tanggal_kegiatan || null,
+            fields.lokasi_kegiatan || null,
+            fields.ringkasan || null,
+            fields.total_anggaran || null,
+            fields.rekomendasi_dukungan || null,
+            fields.pic_penanganan || null,
+            fields.nomor_rekening || null,
+            fields.catatan_tindak_lanjut || null,
+            letterId,
           ]
-        )
-        break
+        );
+        break;
 
-      case 'pemberitahuan':
+      case "pemberitahuan":
         await connection.execute(
           `UPDATE letter_pemberitahuan 
            SET kategori_pemberitahuan = ?, tingkat_prioritas = ?,
                batas_waktu_respon = ?, follow_up_required = ?, updated_at = CURRENT_TIMESTAMP
            WHERE letter_id = ?`,
           [
-            fields.kategori_pemberitahuan || null, fields.tingkat_prioritas || null,
-            fields.batas_waktu_respon || null, fields.follow_up_required || null,
-            letterId
+            fields.kategori_pemberitahuan || null,
+            fields.tingkat_prioritas || null,
+            fields.batas_waktu_respon || null,
+            fields.follow_up_required || null,
+            letterId,
           ]
-        )
-        break
+        );
+        break;
     }
   },
 
   // Delete letter
   async deleteLetter(req, res) {
     try {
-      const { id } = req.params
+      const { id } = req.params;
 
       // Get file path before delete
-      const [letter] = await db.execute('SELECT file_surat FROM letters WHERE id = ?', [id])
-      
+      const [letter] = await db.execute(
+        "SELECT file_surat FROM letters WHERE id = ?",
+        [id]
+      );
+
       // Delete letter (cascade akan delete additional fields)
-      const [result] = await db.execute('DELETE FROM letters WHERE id = ?', [id])
+      const [result] = await db.execute("DELETE FROM letters WHERE id = ?", [
+        id,
+      ]);
 
       if (result.affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          message: 'Surat tidak ditemukan'
-        })
+          message: "Surat tidak ditemukan",
+        });
       }
 
       // Delete file if exists
       if (letter.length > 0 && letter[0].file_surat) {
         fs.unlink(letter[0].file_surat, (err) => {
-          if (err) console.error('Error deleting file:', err)
-        })
+          if (err) console.error("Error deleting file:", err);
+        });
       }
 
       res.json({
         success: true,
-        message: 'Surat berhasil dihapus'
-      })
-
+        message: "Surat berhasil dihapus",
+      });
     } catch (error) {
-      console.error('Error deleting letter:', error)
+      console.error("Error deleting letter:", error);
       res.status(500).json({
         success: false,
-        message: 'Terjadi kesalahan saat menghapus surat',
-        error: error.message
-      })
+        message: "Terjadi kesalahan saat menghapus surat",
+        error: error.message,
+      });
     }
   },
 
@@ -694,10 +813,16 @@ const lettersController = {
   async getDashboardStats(req, res) {
     try {
       const queries = await Promise.all([
-        db.execute('SELECT COUNT(*) as total FROM letters'),
-        db.execute('SELECT COUNT(*) as count FROM letters WHERE status = "baru"'),
-        db.execute('SELECT COUNT(*) as count FROM letters WHERE status = "selesai"'),
-        db.execute('SELECT COUNT(*) as count FROM letters WHERE status IN ("diproses", "verifikasi")'),
+        db.execute("SELECT COUNT(*) as total FROM letters"),
+        db.execute(
+          'SELECT COUNT(*) as count FROM letters WHERE status = "baru"'
+        ),
+        db.execute(
+          'SELECT COUNT(*) as count FROM letters WHERE status = "selesai"'
+        ),
+        db.execute(
+          'SELECT COUNT(*) as count FROM letters WHERE status IN ("diproses", "verifikasi")'
+        ),
         db.execute(`
           SELECT jenis, COUNT(*) as count 
           FROM letters 
@@ -709,17 +834,17 @@ const lettersController = {
           WHERE created_at >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
           GROUP BY DATE(created_at)
           ORDER BY date
-        `)
-      ])
+        `),
+      ]);
 
       const [
         [totalResult],
-        [newResult], 
+        [newResult],
         [completedResult],
         [processResult],
         jenisResult,
-        trendResult
-      ] = queries
+        trendResult,
+      ] = queries;
 
       res.json({
         success: true,
@@ -729,18 +854,17 @@ const lettersController = {
           completed: completedResult[0].count,
           processing: processResult[0].count,
           byType: jenisResult[0],
-          trend: trendResult[0]
-        }
-      })
-
+          trend: trendResult[0],
+        },
+      });
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error)
+      console.error("Error fetching dashboard stats:", error);
       res.status(500).json({
         success: false,
-        message: 'Terjadi kesalahan saat mengambil statistik'
-      })
+        message: "Terjadi kesalahan saat mengambil statistik",
+      });
     }
-  }
-}
+  },
+};
 
-module.exports = lettersController
+module.exports = lettersController;
