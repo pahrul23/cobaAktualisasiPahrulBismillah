@@ -1,12 +1,12 @@
 // Path: /backend/src/controllers/auth.controller.js
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { createConnection } = require('../config/database');
+const pool = require('../config/database');
 
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -17,10 +17,8 @@ const login = async (req, res) => {
       });
     }
 
-    const connection = await createConnection();
-    const [rows] = await connection.execute('SELECT * FROM users WHERE email = ?', [email]);
-    await connection.end();
-    
+    const [rows] = await pool.execute('SELECT * FROM users WHERE email = ?', [email]);
+
     if (rows.length === 0) {
       console.log(`Login failed: user ${email} not found`);
       return res.status(401).json({
@@ -34,7 +32,7 @@ const login = async (req, res) => {
 
     const user = rows[0];
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    
+
     if (!isPasswordValid) {
       console.log(`Login failed: invalid password for ${email}`);
       return res.status(401).json({
@@ -46,27 +44,32 @@ const login = async (req, res) => {
       });
     }
 
-    // Generate token dengan expiry 10 hari
+    // Debug logging
+    console.log('JWT_SECRET from env:', process.env.JWT_SECRET);
+    console.log('JWT_EXPIRES_IN from env:', process.env.JWT_EXPIRES_IN);
+
+    const jwtSecret = process.env.JWT_SECRET || 'supersecretkey_ri7_2025';
+    const jwtExpires = process.env.JWT_EXPIRES_IN || '10d';
+
     const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        role: user.role 
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role
       },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '10d' }
+      jwtSecret,
+      { expiresIn: jwtExpires }
     );
 
     const { password: _, ...userWithoutPassword } = user;
-
-    console.log(`Login successful: ${user.email} (${user.role}) - Token expires in 10 days`);
+    console.log(`Login successful: ${user.email} (${user.role}) - Token expires in ${jwtExpires}`);
 
     res.json({
       success: true,
-      data: { 
-        user: userWithoutPassword, 
+      data: {
+        user: userWithoutPassword,
         token,
-        expiresIn: process.env.JWT_EXPIRES_IN || '10d'
+        expiresIn: jwtExpires
       },
       message: `Login berhasil sebagai ${user.role}`
     });
@@ -80,10 +83,8 @@ const login = async (req, res) => {
   }
 };
 
-// Add /me endpoint untuk verify token
 const getMe = async (req, res) => {
   try {
-    // req.user sudah ada dari authGuard middleware
     res.json({
       success: true,
       data: req.user,

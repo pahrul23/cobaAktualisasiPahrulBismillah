@@ -2,6 +2,7 @@ const db = require("../config/database");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const agendaController = require("./agenda.controller");
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -49,8 +50,6 @@ const lettersController = {
     console.log("=== DEBUG FILE UPLOAD - CREATE LETTER ===");
     console.log("req.body:", req.body);
     console.log("req.file:", req.file);
-    console.log("req.files:", req.files);
-    console.log("Headers:", req.headers);
     console.log("========================================");
 
     const connection = await db.getConnection();
@@ -69,7 +68,7 @@ const lettersController = {
         uraian,
         keterangan = null,
         label = null,
-        created_by = 1, // Default user ID, sesuaikan dengan auth
+        created_by = 1,
         ...additionalFields
       } = req.body;
 
@@ -97,8 +96,7 @@ const lettersController = {
         });
       }
 
-      // GANTI baris 72-82
-      // Handle file upload - TAMBAHKAN VALIDASI WAJIB
+      // Handle file upload - VALIDASI WAJIB
       let filePath = null;
       let fileName = null;
       let fileSize = null;
@@ -109,7 +107,6 @@ const lettersController = {
         fileSize = req.file.size;
         console.log("File uploaded:", { filePath, fileName, fileSize });
       } else {
-        // TAMBAHKAN INI - validasi wajib file untuk create
         console.log("No file uploaded - CREATE requires file");
         await connection.rollback();
         return res.status(400).json({
@@ -117,6 +114,7 @@ const lettersController = {
           message: "File surat wajib diupload",
         });
       }
+      
       // Insert main letter record
       const letterQuery = `
         INSERT INTO letters (
@@ -125,23 +123,6 @@ const lettersController = {
           file_surat, file_surat_name, file_surat_size, created_by
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
-
-      console.log("Executing query with values:", [
-        jenis,
-        no_disposisi,
-        no_surat,
-        asal_surat,
-        perihal,
-        tanggal_terima,
-        tanggal_surat,
-        uraian,
-        keterangan,
-        label || "hitam",
-        filePath,
-        fileName,
-        fileSize,
-        created_by,
-      ]);
 
       const [letterResult] = await connection.execute(letterQuery, [
         jenis,
@@ -155,7 +136,6 @@ const lettersController = {
         keterangan,
         label || "hitam",
         filePath,
-        // filePath,
         fileName,
         fileSize,
         created_by,
@@ -169,7 +149,8 @@ const lettersController = {
         connection,
         letterId,
         jenis,
-        additionalFields
+        additionalFields,
+        req.body
       );
 
       await connection.commit();
@@ -196,7 +177,6 @@ const lettersController = {
       await connection.rollback();
       console.error("Error creating letter:", error);
 
-      // Delete uploaded file if error
       if (req.file) {
         fs.unlink(req.file.path, (unlinkError) => {
           if (unlinkError) console.error("Error deleting file:", unlinkError);
@@ -213,8 +193,8 @@ const lettersController = {
     }
   },
 
-  // Insert additional fields based on letter type
-  async insertAdditionalFields(connection, letterId, jenis, fields) {
+  // Insert additional fields - BACKWARD COMPATIBLE
+  async insertAdditionalFields(connection, letterId, jenis, fields, reqBody = {}) {
     console.log(
       "Inserting additional fields for jenis:",
       jenis,
@@ -256,6 +236,45 @@ const lettersController = {
           fields.dokumentasi || null,
         ]);
         console.log("Undangan fields inserted");
+
+        // AUTO-INSERT AGENDA - BACKWARD COMPATIBLE (kedua kolom)
+        try {
+          const agendaQuery = `
+            INSERT INTO agenda (
+              letter_id, jenis_surat, status_kehadiran, catatan_kehadiran,
+              tanggal_agenda, tanggal_konfirmasi, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+          `;
+
+          const tanggalAgenda =
+            fields.hari_tanggal_acara || new Date().toISOString().split("T")[0];
+
+          console.log("DEBUG - tanggalAgenda akan disimpan:", tanggalAgenda);
+
+          const perihal = reqBody.perihal || 'Undangan';
+          const catatanKehadiran = `Undangan: ${perihal}. Acara: ${
+            fields.jenis_acara || ""
+          }. Tempat: ${fields.tempat || "TBD"}`;
+
+          await connection.execute(agendaQuery, [
+            letterId,
+            "undangan",
+            "belum_konfirmasi",
+            catatanKehadiran,
+            tanggalAgenda, // kolom baru
+            tanggalAgenda, // kolom lama untuk backward compatibility
+            1,
+          ]);
+
+          console.log(
+            `Auto-inserted agenda for undangan letter ID: ${letterId} pada tanggal: ${tanggalAgenda}`
+          );
+        } catch (agendaError) {
+          console.error(
+            `Failed to auto-insert agenda for undangan:`,
+            agendaError
+          );
+        }
         break;
 
       case "audiensi":
@@ -277,6 +296,47 @@ const lettersController = {
           fields.dokumentasi || null,
         ]);
         console.log("Audiensi fields inserted");
+
+        // AUTO-INSERT AGENDA - BACKWARD COMPATIBLE (kedua kolom)
+        try {
+          const agendaQuery = `
+            INSERT INTO agenda (
+              letter_id, jenis_surat, status_kehadiran, catatan_kehadiran,
+              tanggal_agenda, tanggal_konfirmasi, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+          `;
+
+          const tanggalAgenda =
+            fields.hari_tanggal || new Date().toISOString().split("T")[0];
+
+          console.log("DEBUG - tanggalAgenda audiensi:", tanggalAgenda);
+          
+          const perihal = reqBody.perihal || 'Audiensi';
+          const catatanKehadiran = `Audiensi: ${perihal}. Topik: ${
+            fields.topik_audiensi || ""
+          }. Pemohon: ${fields.nama_pemohon || ""}. Tempat: ${
+            fields.tempat || "TBD"
+          }`;
+
+          await connection.execute(agendaQuery, [
+            letterId,
+            "audiensi",
+            "belum_konfirmasi",
+            catatanKehadiran,
+            tanggalAgenda, // kolom baru
+            tanggalAgenda, // kolom lama untuk backward compatibility
+            1,
+          ]);
+
+          console.log(
+            `Auto-inserted agenda for audiensi letter ID: ${letterId} pada tanggal: ${tanggalAgenda}`
+          );
+        } catch (agendaError) {
+          console.error(
+            `Failed to auto-insert agenda for audiensi:`,
+            agendaError
+          );
+        }
         break;
 
       case "proposal":
@@ -334,7 +394,6 @@ const lettersController = {
       let whereConditions = [];
       let queryParams = [];
 
-      // Filter conditions
       if (jenis && jenis !== "all") {
         whereConditions.push("l.jenis = ?");
         queryParams.push(jenis);
@@ -362,7 +421,6 @@ const lettersController = {
           ? "WHERE " + whereConditions.join(" AND ")
           : "";
 
-      // Count total records
       const countQuery = `
         SELECT COUNT(*) as total 
         FROM letters l 
@@ -371,27 +429,22 @@ const lettersController = {
       const [countResult] = await db.execute(countQuery, queryParams);
       const totalRecords = countResult[0].total;
 
-      // Calculate pagination
       const offset = (page - 1) * limit;
       const totalPages = Math.ceil(totalRecords / limit);
 
-      // Main query dengan JOIN untuk mendapatkan field tambahan
       const query = `
         SELECT 
           l.*,
           u.name as created_by_name,
-          -- Pengaduan fields
           lp.jenis_pengaduan,
           lp.tingkat_urgensi,
-          -- Undangan fields  
-          lu.hari_tanggal_acara,
+          lu.hari_tanggal_acara as undangan_tanggal_acara,
           lu.pukul as undangan_pukul,
           lu.tempat as undangan_tempat,
           lu.jenis_acara,
           lu.dress_code,
           lu.rsvp_required,
           lu.dokumentasi as undangan_dokumentasi,
-          -- Audiensi fields
           la.hari_tanggal as audiensi_tanggal,
           la.pukul as audiensi_pukul,
           la.tempat as audiensi_tempat,
@@ -400,7 +453,6 @@ const lettersController = {
           la.jumlah_peserta,
           la.topik_audiensi,
           la.dokumentasi as audiensi_dokumentasi,
-          -- Proposal fields
           p.nama_pengirim,
           p.instansi_lembaga_komunitas,
           p.judul_proposal,
@@ -413,7 +465,6 @@ const lettersController = {
           p.pic_penanganan,
           p.nomor_rekening,
           p.catatan_tindak_lanjut,
-          -- Pemberitahuan fields
           lpb.kategori_pemberitahuan,
           lpb.tingkat_prioritas,
           lpb.batas_waktu_respon,
@@ -468,18 +519,15 @@ const lettersController = {
           l.*,
           u.name as created_by_name,
           u.email as created_by_email,
-          -- Pengaduan fields
           lp.jenis_pengaduan,
           lp.tingkat_urgensi,
-          -- Undangan fields  
-          lu.hari_tanggal_acara,
+          lu.hari_tanggal_acara as undangan_tanggal_acara,
           lu.pukul as undangan_pukul,
           lu.tempat as undangan_tempat,
           lu.jenis_acara,
           lu.dress_code,
           lu.rsvp_required,
           lu.dokumentasi as undangan_dokumentasi,
-          -- Audiensi fields
           la.hari_tanggal as audiensi_tanggal,
           la.pukul as audiensi_pukul,
           la.tempat as audiensi_tempat,
@@ -488,7 +536,6 @@ const lettersController = {
           la.jumlah_peserta,
           la.topik_audiensi,
           la.dokumentasi as audiensi_dokumentasi,
-          -- Proposal fields
           p.nama_pengirim,
           p.instansi_lembaga_komunitas,
           p.judul_proposal,
@@ -501,7 +548,6 @@ const lettersController = {
           p.pic_penanganan,
           p.nomor_rekening,
           p.catatan_tindak_lanjut,
-          -- Pemberitahuan fields
           lpb.kategori_pemberitahuan,
           lpb.tingkat_prioritas,
           lpb.batas_waktu_respon,
@@ -545,7 +591,6 @@ const lettersController = {
     console.log("req.params:", req.params);
     console.log("req.body:", req.body);
     console.log("req.file:", req.file);
-    console.log("===========================");
 
     const connection = await db.getConnection();
 
@@ -567,8 +612,6 @@ const lettersController = {
         ...additionalFields
       } = req.body;
 
-      // Handle file update
-      // Handle file update
       let shouldUpdateFile = false;
       let filePath = null;
       let fileName = null;
@@ -586,13 +629,12 @@ const lettersController = {
         });
       }
 
-      // Update main letter record
       let letterQuery = `
-  UPDATE letters 
-  SET no_disposisi = ?, no_surat = ?, asal_surat = ?, perihal = ?,
-      tanggal_terima = ?, tanggal_surat = ?, uraian = ?, keterangan = ?,
-      label = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-`;
+        UPDATE letters 
+        SET no_disposisi = ?, no_surat = ?, asal_surat = ?, perihal = ?,
+            tanggal_terima = ?, tanggal_surat = ?, uraian = ?, keterangan = ?,
+            label = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+      `;
       let queryParams = [
         no_disposisi,
         no_surat,
@@ -606,7 +648,6 @@ const lettersController = {
         status,
       ];
 
-      // HANYA update file fields jika ada file baru
       if (shouldUpdateFile) {
         letterQuery += `, file_surat = ?, file_surat_name = ?, file_surat_size = ?`;
         queryParams.push(filePath, fileName, fileSize);
@@ -617,7 +658,6 @@ const lettersController = {
 
       await connection.execute(letterQuery, queryParams);
 
-      // Get letter jenis to update additional fields
       const [letterResult] = await connection.execute(
         "SELECT jenis FROM letters WHERE id = ?",
         [id]
@@ -629,7 +669,8 @@ const lettersController = {
           connection,
           id,
           jenis,
-          additionalFields
+          additionalFields,
+          req.body
         );
       }
 
@@ -658,7 +699,7 @@ const lettersController = {
   },
 
   // Update additional fields
-  async updateAdditionalFields(connection, letterId, jenis, fields) {
+  async updateAdditionalFields(connection, letterId, jenis, fields, reqBody = {}) {
     console.log(
       "Updating additional fields for jenis:",
       jenis,
@@ -703,7 +744,7 @@ const lettersController = {
         await connection.execute(
           `UPDATE letter_audiensi 
            SET hari_tanggal = ?, pukul = ?, tempat = ?, nama_pemohon = ?,
-               instansi_organisasi = ?, jumlah_peserta = ?, topik_audiensi = ?,
+               instansi_organisasi = ?, jumlah_peserta = ?, topik_audiensi = ?, 
                dokumentasi = ?, updated_at = CURRENT_TIMESTAMP
            WHERE letter_id = ?`,
           [
@@ -726,7 +767,7 @@ const lettersController = {
            SET nama_pengirim = ?, instansi_lembaga_komunitas = ?, judul_proposal = ?,
                jenis_kegiatan = ?, tanggal_kegiatan = ?, lokasi_kegiatan = ?,
                ringkasan = ?, total_anggaran = ?, rekomendasi_dukungan = ?,
-               pic_penanganan = ?, nomor_rekening = ?, catatan_tindak_lanjut = ?,
+               pic_penanganan = ?, nomor_rekening = ?, catatan_tindak_lanjut = ?, 
                updated_at = CURRENT_TIMESTAMP
            WHERE letter_id = ?`,
           [
@@ -750,8 +791,8 @@ const lettersController = {
       case "pemberitahuan":
         await connection.execute(
           `UPDATE letter_pemberitahuan 
-           SET kategori_pemberitahuan = ?, tingkat_prioritas = ?,
-               batas_waktu_respon = ?, follow_up_required = ?, updated_at = CURRENT_TIMESTAMP
+           SET kategori_pemberitahuan = ?, tingkat_prioritas = ?, batas_waktu_respon = ?,
+               follow_up_required = ?, updated_at = CURRENT_TIMESTAMP
            WHERE letter_id = ?`,
           [
             fields.kategori_pemberitahuan || null,
@@ -770,13 +811,11 @@ const lettersController = {
     try {
       const { id } = req.params;
 
-      // Get file path before delete
       const [letter] = await db.execute(
         "SELECT file_surat FROM letters WHERE id = ?",
         [id]
       );
 
-      // Delete letter (cascade akan delete additional fields)
       const [result] = await db.execute("DELETE FROM letters WHERE id = ?", [
         id,
       ]);
@@ -866,49 +905,45 @@ const lettersController = {
     }
   },
 
-  
-  // GANTI function generatePDF dengan ini:
+  // Generate PDF function
   async generatePDF(req, res) {
-  try {
-    const { letterId } = req.params
-    console.log('=== GENERATING PDF FOR LETTER ID:', letterId, '===')
-    
-    // Get letter data
-    const query = `
+    try {
+      const { letterId } = req.params;
+      console.log("=== GENERATING PDF FOR LETTER ID:", letterId, "===");
+
+      const query = `
       SELECT 
         l.*,
         u.name as created_by_name,
         lp.jenis_pengaduan, lp.tingkat_urgensi,
-        lu.hari_tanggal_acara, lu.jenis_acara
+        lu.hari_tanggal_acara as undangan_tanggal_acara, lu.jenis_acara
       FROM letters l
       LEFT JOIN users u ON l.created_by = u.id
       LEFT JOIN letter_pengaduan lp ON l.id = lp.letter_id
       LEFT JOIN letter_undangan lu ON l.id = lu.letter_id
       WHERE l.id = ?
-    `
-    
-    const [letters] = await db.execute(query, [letterId])
-    
-    if (letters.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Surat tidak ditemukan'
-      })
-    }
+    `;
 
-    const letter = letters[0]
-    
-    // Format date helper
-    const formatDate = (dateString) => {
-      return new Date(dateString).toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: '2-digit', 
-        year: 'numeric'
-      })
-    }
+      const [letters] = await db.execute(query, [letterId]);
 
-    // HTML dengan optimasi minimal untuk 1 halaman
-    const htmlContent = `
+      if (letters.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Surat tidak ditemukan",
+        });
+      }
+
+      const letter = letters[0];
+
+      const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+      };
+
+      const htmlContent = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -916,60 +951,46 @@ const lettersController = {
       <style>
         @page {
           size: A4;
-          margin: 8mm; /* Dikurangi dari 15mm ke 8mm */
+          margin: 8mm;
         }
         body {
-          font-family: Arial, sans-serif;
-          font-size: 12px; /* Dikurangi dari 13px ke 12px */
-          line-height: 1.3; /* Dikurangi dari 1.4 ke 1.3 */
+          font-family: Times New Roman, sans-serif;
+          font-size: 14px;
+          line-height: 1.3;
           margin: 0;
           padding: 0;
           color: #000;
         }
         .header {
           border: 2px solid #000;
-          padding: 8px; /* Dikurangi dari 15px ke 8px */
+          padding: 8px;
           margin-bottom: 0;
           display: table;
           width: 100%;
           box-sizing: border-box;
-        }
-        .header-left {
-          display: table-cell;
-          width: 80px;
-          vertical-align: middle;
-          text-align: center;
         }
         .header-center {
           display: table-cell;
           text-align: center;
           vertical-align: middle;
         }
-        .header-right {
-          display: table-cell;
-          width: 80px;
-        }
-        .logo {
-          width: 50px; /* Dikurangi dari 60px ke 50px */
-          height: 50px;
-        }
         .header h2 {
-          margin: 3px 0; /* Dikurangi dari 5px ke 3px */
-          font-size: 14px; /* Dikurangi dari 15px ke 14px */
+          margin: 3px 0;
+          font-size: 14px;
           font-weight: bold;
         }
         .header p {
-          margin: 2px 0; /* Dikurangi dari 3px ke 2px */
-          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          margin: 2px 0;
+          font-size: 11px;
         }
         .title-section {
           background-color: #f0f0f0;
           text-align: center;
-          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          padding: 6px;
           font-weight: bold;
           border: 2px solid #000;
           border-top: none;
-          font-size: 13px; /* Dikurangi dari 14px ke 13px */
+          font-size: 13px;
           box-sizing: border-box;
         }
         .form-section {
@@ -977,9 +998,9 @@ const lettersController = {
           border-top: none;
           box-sizing: border-box;
         }
-        .form-row {
+        .form-row, .form-row-split {
           border-bottom: 1px solid #000;
-          min-height: 28px; /* Dikurangi dari 35px ke 28px */
+          min-height: 28px;
           display: table;
           width: 100%;
           box-sizing: border-box;
@@ -990,59 +1011,52 @@ const lettersController = {
         .form-label {
           display: table-cell;
           width: 40%;
-          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          padding: 6px;
           border-right: 1px solid #000;
           vertical-align: middle;
-          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          font-size: 11px;
           box-sizing: border-box;
         }
         .form-value {
           display: table-cell;
-          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          padding: 6px;
           vertical-align: middle;
-          font-size: 11px; /* Dikurangi dari 12px ke 11px */
-          box-sizing: border-box;
-        }
-        .form-row-split {
-          border-bottom: 1px solid #000;
-          min-height: 28px; /* Dikurangi dari 35px ke 28px */
-          display: table;
-          width: 100%;
+          font-size: 11px;
           box-sizing: border-box;
         }
         .form-label-left {
           display: table-cell;
           width: 30%;
-          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          padding: 6px;
           border-right: 1px solid #000;
           vertical-align: middle;
-          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          font-size: 11px;
           box-sizing: border-box;
         }
         .form-value-left {
           display: table-cell;
           width: 35%;
-          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          padding: 6px;
           border-right: 1px solid #000;
           vertical-align: middle;
-          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          font-size: 11px;
           box-sizing: border-box;
         }
         .form-label-right {
           display: table-cell;
           width: 15%;
-          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          padding: 6px;
           border-right: 1px solid #000;
           vertical-align: middle;
-          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          font-size: 11px;
           box-sizing: border-box;
         }
         .form-value-right {
           display: table-cell;
           width: 20%;
-          padding: 6px; /* Dikurangi dari 10px ke 6px */
+          padding: 6px;
           vertical-align: middle;
-          font-size: 11px; /* Dikurangi dari 12px ke 11px */
+          font-size: 11px;
           box-sizing: border-box;
         }
         .disposisi-container {
@@ -1050,19 +1064,19 @@ const lettersController = {
           border-top: none;
           display: table;
           width: 100%;
-          height: 250px; /* DRASTIS: Dikurangi dari 400px ke 250px */
+          height: 250px;
           box-sizing: border-box;
         }
         .disposisi-col {
           display: table-cell;
-          padding: 6px; /* Dikurangi dari 12px ke 6px */
+          padding: 6px;
           vertical-align: top;
-          border-right: 1px solid #000; /* FIXED: Border kanan ditambahkan */
-          font-size: 9px; /* Dikurangi dari 11px ke 9px */
+          border-right: 1px solid #000;
+          font-size: 9px;
           box-sizing: border-box;
         }
         .disposisi-col:last-child {
-          border-right: none; /* Kolom terakhir tetap tanpa border kanan */
+          border-right: none;
         }
         .disposisi-left {
           width: 35%;
@@ -1075,50 +1089,36 @@ const lettersController = {
           text-align: center;
         }
         .checkbox-item {
-          margin: 2px 0; /* Dikurangi dari 5px ke 2px */
-          font-size: 11px; /* Dikurangi dari 11px ke 9px */
+          margin: 2px 0;
+          font-size: 11px;
           line-height: 1.2;
         }
         .col-title {
           font-weight: bold;
           text-align: center;
-          margin-bottom: 8px; /* Dikurangi dari 15px ke 8px */
-          font-size: 10px; /* Dikurangi dari 12px ke 10px */
-        }
-        .signature-box {
-          height: 60px; /* Dikurangi dari 100px ke 60px */
-          border: 1px solid #000;
-          margin-top: 10px; /* Dikurangi dari 20px ke 10px */
-          width: 100%;
-          box-sizing: border-box;
+          margin-bottom: 8px;
+          font-size: 10px;
         }
         .lines {
-          margin-top: 8px; /* Dikurangi dari 25px ke 8px */
-          font-size: 9px; /* Dikurangi dari 11px ke 9px */
+          margin-top: 8px;
+          font-size: 9px;
         }
       </style>
     </head>
     <body>
-      <!-- Header with Logo -->
       <div class="header">
-        <div class="header-left">
-          <img src="./frontend/frontend/src/assets/LogoSetjen.png" alt="Logo DPD RI" class="logo" />
-        </div>
         <div class="header-center">
           <h2>KETUA</h2>
           <h2>DEWAN PERWAKILAN DAERAH</h2>
           <h2>REPUBLIK INDONESIA</h2>
           <p>Jl. Jenderal Gatot Subroto No. 6 Jakarta - 10270</p>
         </div>
-        <div class="header-right"></div>
       </div>
 
-      <!-- Title -->
       <div class="title-section">
         LEMBAR DISPOSISI KETUA DPD RI
       </div>
 
-      <!-- Form Information -->
       <div class="form-section">
         <div class="form-row-split">
           <div class="form-label-left">Nomor Agenda/Registrasi</div>
@@ -1129,7 +1129,9 @@ const lettersController = {
         
         <div class="form-row-split">
           <div class="form-label-left">Tanggal Penerimaan</div>
-          <div class="form-value-left">: ${formatDate(letter.tanggal_terima)}</div>
+          <div class="form-value-left">: ${formatDate(
+            letter.tanggal_terima
+          )}</div>
           <div class="form-label-right">Tgl. Penyelesaian</div>
           <div class="form-value-right">: ..................</div>
         </div>
@@ -1141,7 +1143,9 @@ const lettersController = {
 
         <div class="form-row">
           <div class="form-label">Tanggal dan Nomor Surat/Nota Dinas/Memorandum</div>
-          <div class="form-value">: ${formatDate(letter.tanggal_surat)} / ${letter.no_surat}</div>
+          <div class="form-value">: ${formatDate(letter.tanggal_surat)} / ${
+        letter.no_surat
+      }</div>
         </div>
 
         <div class="form-row">
@@ -1156,11 +1160,10 @@ const lettersController = {
 
         <div class="form-row">
           <div class="form-label">Lampiran</div>
-          <div class="form-value">: ${letter.file_surat_name || '-'}</div>
+          <div class="form-value">: ${letter.file_surat_name || "-"}</div>
         </div>
       </div>
 
-      <!-- Disposisi Section -->
       <div class="disposisi-container">
         <div class="disposisi-col disposisi-left">
           <div class="col-title">Disposisi</div>
@@ -1221,60 +1224,66 @@ const lettersController = {
 
         <div class="disposisi-col disposisi-right">
           <div class="col-title">Paraf</div>
-          <div class="signature-box"></div>
         </div>
       </div>
     </body>
     </html>
-    `
-    
-    const puppeteer = require('puppeteer')
-    
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-    })
-    
-    const page = await browser.newPage()
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
-    
-    // Generate PDF
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      preferCSSPageSize: true,
-      margin: {
-        top: '8mm', /* Dikurangi dari 15mm ke 8mm */
-        right: '8mm',
-        bottom: '8mm',
-        left: '8mm'
-      }
-    })
-    
-    await browser.close()
-    
-    // Set proper headers
-    const fileName = `DISPOSISI_${letter.no_disposisi.replace(/[\/\\]/g, '_')}.pdf`
-    
-    res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Length', pdfBuffer.length)
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
-    res.setHeader('Pragma', 'no-cache')
-    res.setHeader('Expires', '0')
-    
-    res.end(pdfBuffer)
-    console.log('PDF sent successfully, size:', pdfBuffer.length)
-    
-  } catch (error) {
-    console.error('Error generating PDF:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Gagal generate PDF disposisi',
-      error: error.message
-    })
-  }
-},
+    `;
+
+      const puppeteer = require("puppeteer");
+
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+        ],
+      });
+
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+
+      const pdfBuffer = await page.pdf({
+        format: "A4",
+        printBackground: true,
+        preferCSSPageSize: true,
+        margin: {
+          top: "8mm",
+          right: "8mm",
+          bottom: "8mm",
+          left: "8mm",
+        },
+      });
+
+      await browser.close();
+
+      const fileName = `DISPOSISI_${letter.no_disposisi.replace(
+        /[\/\\]/g,
+        "_"
+      )}.pdf`;
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${fileName}"`
+      );
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+
+      res.end(pdfBuffer);
+      console.log("PDF sent successfully, size:", pdfBuffer.length);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      res.status(500).json({
+        success: false,
+        message: "Gagal generate PDF disposisi",
+        error: error.message,
+      });
+    }
+  },
 };
 
 module.exports = lettersController;
