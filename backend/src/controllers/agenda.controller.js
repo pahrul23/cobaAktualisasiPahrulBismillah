@@ -1,14 +1,16 @@
-// agenda.controller.js - UPDATED untuk support kolom tanggal_agenda
+// agenda.controller.js - DEBUGGING VERSION with detailed logging
 const db = require("../config/database");
 
 const agendaController = {
-  // Get all agenda - FIXED: Support both tanggal_agenda and tanggal_konfirmasi
+  // Get all agenda - ENHANCED DEBUGGING
   async getAllAgenda(req, res) {
     try {
       const { date, month, year } = req.query;
       
-      console.log("=== GET ALL AGENDA DEBUG ===");
+      console.log("=== ENHANCED AGENDA DEBUG ===");
       console.log("Query params:", { date, month, year });
+      console.log("Server timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+      console.log("Server date:", new Date().toISOString());
 
       let whereConditions = [];
       let queryParams = [];
@@ -29,6 +31,12 @@ const agendaController = {
       const query = `
         SELECT 
           a.*,
+          -- Raw date debugging
+          a.tanggal_agenda as raw_tanggal_agenda,
+          a.tanggal_konfirmasi as raw_tanggal_konfirmasi,
+          DATE(a.tanggal_agenda) as date_only_agenda,
+          DATE(a.tanggal_konfirmasi) as date_only_konfirmasi,
+          -- Letter info
           l.no_surat as letter_no_surat,
           l.perihal as letter_perihal,
           l.asal_surat,
@@ -67,22 +75,39 @@ const agendaController = {
 
       console.log("Found agenda items:", agenda.length);
       
-      // Debug: log each agenda item
+      // Enhanced debugging: log each agenda item with detailed date info
       agenda.forEach((item, index) => {
-        console.log(`Agenda ${index + 1}:`, {
-          id: item.id,
-          tanggal_agenda: item.tanggal_agenda,
-          tanggal_konfirmasi: item.tanggal_konfirmasi,
-          jenis_surat: item.jenis_surat,
-          catatan: item.catatan_kehadiran
-        });
+        console.log(`=== AGENDA ITEM ${index + 1} ===`);
+        console.log(`ID: ${item.id}`);
+        console.log(`Raw tanggal_agenda:`, item.raw_tanggal_agenda);
+        console.log(`Raw tanggal_konfirmasi:`, item.raw_tanggal_konfirmasi);
+        console.log(`Date only agenda:`, item.date_only_agenda);
+        console.log(`Date only konfirmasi:`, item.date_only_konfirmasi);
+        console.log(`Jenis surat:`, item.jenis_surat);
+        console.log(`Catatan:`, item.catatan_kehadiran);
+        
+        // Show which date would be used for filtering
+        const effectiveDate = item.date_only_agenda || item.date_only_konfirmasi;
+        console.log(`Effective date for filtering:`, effectiveDate);
+        
+        if (date) {
+          console.log(`Date match (${effectiveDate} === ${date}):`, effectiveDate === date);
+        }
+        console.log("================================");
       });
 
       res.json({
         success: true,
         data: {
           agenda,
-          total: agenda.length
+          total: agenda.length,
+          debug: {
+            server_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            server_date: new Date().toISOString(),
+            filter_date: date,
+            query_executed: query,
+            params_used: queryParams
+          }
         },
       });
     } catch (error) {
