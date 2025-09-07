@@ -286,7 +286,7 @@ const CalendarView = ({ onDateSelect, currentDate }) => {
       }}>
         {days.map((dayData, index) => {
           const isToday = dayData && formatDateToString(new Date()) === dayData.dateStr
-          const isSelected = dayData && formatDateToString(currentDate) === dayData.dateStr
+          // const isSelected = false // Remove default selection in calendar view
           
           return (
             <div
@@ -296,13 +296,9 @@ const CalendarView = ({ onDateSelect, currentDate }) => {
                 minHeight: '100px',
                 padding: '8px',
                 background: dayData ? 
-                  isSelected ? '#e0f2fe' : 
-                  isToday ? '#f0f9ff' : 
-                  '#f8fafc' : 'transparent',
+                  isToday ? '#f0f9ff' : '#f8fafc' : 'transparent',
                 border: `1px solid ${
-                  isSelected ? '#0ea5e9' :
-                  isToday ? '#38bdf8' : 
-                  '#e2e8f0'
+                  isToday ? '#38bdf8' : '#e2e8f0'
                 }`,
                 borderRadius: '6px',
                 cursor: dayData ? 'pointer' : 'default',
@@ -310,12 +306,12 @@ const CalendarView = ({ onDateSelect, currentDate }) => {
                 transition: 'all 0.2s ease'
               }}
               onMouseOver={(e) => {
-                if (dayData && !isSelected) {
+                if (dayData) {
                   e.target.style.background = '#f1f5f9'
                 }
               }}
               onMouseOut={(e) => {
-                if (dayData && !isSelected) {
+                if (dayData) {
                   e.target.style.background = isToday ? '#f0f9ff' : '#f8fafc'
                 }
               }}
@@ -324,8 +320,8 @@ const CalendarView = ({ onDateSelect, currentDate }) => {
                 <>
                   <div style={{
                     fontSize: '14px',
-                    fontWeight: isToday ? '700' : isSelected ? '600' : '400',
-                    color: isSelected ? '#0ea5e9' : isToday ? '#0284c7' : '#1a202c',
+                    fontWeight: isToday ? '700' : '400',
+                    color: isToday ? '#0284c7' : '#1a202c',
                     marginBottom: '4px'
                   }}>
                     {dayData.day}

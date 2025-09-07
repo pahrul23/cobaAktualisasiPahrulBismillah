@@ -4,11 +4,11 @@ import { Suspense, lazy } from 'react'
 import Login from './components/Login'
 import StafDashboard from './pages/Dashboard/StafDashboard'
 import LettersList from './pages/Letters/LettersList'
-import LetterDetailPage from './pages/Letters/LetterDetailPage' // ADD: New import
+import LetterDetailPage from './pages/Letters/LetterDetailPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import useAuth from './hooks/useAuth'
 import DebugLetterForm from './components/Debug/DebugLetterForm'
-import ProposalsList from './pages/Proposal/ProposalList'
+import ProposalsList from './pages/Proposal/ProposalList' // Keep original import
 import AgendaList from './pages/Agenda/AgendaList'
 import ReportsList from './pages/Reports/ReportsList'
 import Settings from './pages/Settings/SettingsPage'
@@ -73,7 +73,6 @@ function App() {
           }
         />
 
-        {/* ADD: New route for letter detail */}
         <Route
           path="/letters/:id"
           element={
@@ -83,7 +82,6 @@ function App() {
           }
         />
 
-        {/* AddLetter route dengan Suspense untuk lazy loading */}
         <Route
           path="/letters/add"
           element={
@@ -103,7 +101,6 @@ function App() {
           }
         />
 
-        {/* Debug Route */}
         <Route
           path="/debug-form"
           element={
@@ -113,7 +110,6 @@ function App() {
           }
         />
 
-        {/* Under Development Pages */}
         <Route
           path="/proposals"
           element={
