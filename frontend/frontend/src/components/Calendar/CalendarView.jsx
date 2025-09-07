@@ -14,7 +14,13 @@ const CalendarView = ({ onDateSelect, currentDate }) => {
     return `${year}-${month}-${day}`
   }
 
-  // Fetch agenda for the entire month
+  // Helper function to extract date from datetime string without timezone conversion
+  const extractDateOnly = (dateTimeString) => {
+    if (!dateTimeString) return null
+    return dateTimeString.split('T')[0]
+  }
+
+  // Fetch agenda for the entire month by making multiple single-day requests
   const fetchMonthlyAgenda = async (monthDate) => {
     try {
       setLoading(true)
@@ -22,64 +28,66 @@ const CalendarView = ({ onDateSelect, currentDate }) => {
       // Get first and last day of the month
       const year = monthDate.getFullYear()
       const month = monthDate.getMonth()
-      const firstDay = new Date(year, month, 1)
-      const lastDay = new Date(year, month + 1, 0)
+      const daysInMonth = new Date(year, month + 1, 0).getDate()
       
-      const startDate = formatDateToString(firstDay)
-      const endDate = formatDateToString(lastDay)
+      const allAgenda = []
       
-      // Fetch agenda data for the month range
-      // Note: You might need to modify your backend to support date range queries
-      const response = await fetch(
-        `http://localhost:4000/api/agenda?start_date=${startDate}&end_date=${endDate}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
-
-      const data = await response.json()
-      
-      if (data.success) {
-        // Transform the agenda data with date extraction
-        const agendaWithDates = data.data.agenda.map(item => {
-          // Extract date from either tanggal_agenda or tanggal_konfirmasi
-          let agendaDate = null
-          if (item.tanggal_agenda) {
-            agendaDate = item.tanggal_agenda.split('T')[0]
-          } else if (item.tanggal_konfirmasi) {
-            agendaDate = item.tanggal_konfirmasi.split('T')[0]
-          }
-
-          // Extract title from catatan_kehadiran or use letter perihal
-          let title = 'Agenda'
-          if (item.catatan_kehadiran) {
-            if (item.jenis_surat === 'undangan' && item.catatan_kehadiran.includes('Undangan:')) {
-              const titleMatch = item.catatan_kehadiran.match(/Undangan:\s*([^.]+)/)
-              if (titleMatch) title = titleMatch[1].trim()
-            } else if (item.jenis_surat === 'audiensi' && item.catatan_kehadiran.includes('Audiensi:')) {
-              const titleMatch = item.catatan_kehadiran.match(/Audiensi:\s*([^.]+)/)
-              if (titleMatch) title = titleMatch[1].trim()
-            }
-          }
-          if (item.letter_perihal) {
-            title = item.letter_perihal
-          }
-
-          return {
-            ...item,
-            agendaDate,
-            title,
-            type: item.jenis_surat || 'rapat'
-          }
-        })
+      // Fetch agenda for each day of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day)
+        const dateStr = formatDateToString(date)
         
-        setMonthlyAgenda(agendaWithDates)
+        try {
+          const response = await fetch(
+            `http://localhost:4000/api/agenda?date=${dateStr}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          )
+
+          const data = await response.json()
+          
+          if (data.success && data.data.agenda.length > 0) {
+            // Transform the agenda data with proper date handling
+            const dayAgenda = data.data.agenda.map(item => {
+              // Extract title from catatan_kehadiran or use letter perihal
+              let title = 'Agenda'
+              if (item.catatan_kehadiran) {
+                if (item.jenis_surat === 'undangan' && item.catatan_kehadiran.includes('Undangan:')) {
+                  const titleMatch = item.catatan_kehadiran.match(/Undangan:\s*([^.]+)/)
+                  if (titleMatch) title = titleMatch[1].trim()
+                } else if (item.jenis_surat === 'audiensi' && item.catatan_kehadiran.includes('Audiensi:')) {
+                  const titleMatch = item.catatan_kehadiran.match(/Audiensi:\s*([^.]+)/)
+                  if (titleMatch) title = titleMatch[1].trim()
+                }
+              }
+              if (item.letter_perihal) {
+                title = item.letter_perihal
+              }
+
+              return {
+                ...item,
+                agendaDate: dateStr, // Use the requested date, not the database date
+                title,
+                type: item.jenis_surat || 'rapat'
+              }
+            })
+            
+            allAgenda.push(...dayAgenda)
+          }
+        } catch (dayError) {
+          console.log(`No agenda for ${dateStr}:`, dayError)
+          // Continue to next day even if this day fails
+        }
       }
+      
+      console.log('Monthly agenda loaded:', allAgenda)
+      setMonthlyAgenda(allAgenda)
+      
     } catch (error) {
       console.error('Error fetching monthly agenda:', error)
-      // Fallback: try fetching individual days if range query fails
       setMonthlyAgenda([])
     } finally {
       setLoading(false)
@@ -111,8 +119,10 @@ const CalendarView = ({ onDateSelect, currentDate }) => {
       const date = new Date(year, month, day)
       const dateStr = formatDateToString(date)
       
-      // Find agenda for this specific date
+      // Find agenda for this specific date using string comparison
       const dayAgenda = monthlyAgenda.filter(item => item.agendaDate === dateStr)
+      
+      console.log(`Day ${day} (${dateStr}):`, dayAgenda.length, 'agenda items')
       
       days.push({
         day,
@@ -321,13 +331,22 @@ const CalendarView = ({ onDateSelect, currentDate }) => {
                     {dayData.day}
                   </div>
                   
+                  {/* Debug info - REMOVE THIS IN PRODUCTION */}
+                  <div style={{
+                    fontSize: '8px',
+                    color: '#94a3b8',
+                    marginBottom: '4px'
+                  }}>
+                    {dayData.dateStr} ({dayData.agenda.length})
+                  </div>
+                  
                   {/* Agenda Items */}
                   <div style={{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '2px'
                   }}>
-                    {dayData.agenda.slice(0, 3).map((agenda, idx) => (
+                    {dayData.agenda.slice(0, 2).map((agenda, idx) => (
                       <div
                         key={idx}
                         style={{
@@ -350,14 +369,14 @@ const CalendarView = ({ onDateSelect, currentDate }) => {
                       </div>
                     ))}
                     
-                    {dayData.agenda.length > 3 && (
+                    {dayData.agenda.length > 2 && (
                       <div style={{
                         fontSize: '8px',
                         color: '#64748b',
                         textAlign: 'center',
                         marginTop: '2px'
                       }}>
-                        +{dayData.agenda.length - 3} lagi
+                        +{dayData.agenda.length - 2} lagi
                       </div>
                     )}
                   </div>
