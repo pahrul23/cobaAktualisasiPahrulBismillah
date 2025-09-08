@@ -1,4 +1,16 @@
-// Path: /backend/server.js
+// Path: /backend/server.js - FIXED dotenv loading
+// CRITICAL: Load dotenv BEFORE any other requires
+require('dotenv').config()
+
+// Debug environment variables immediately
+console.log('==========================================')
+console.log('ENVIRONMENT VARIABLES DEBUG:')
+console.log('JWT_SECRET:', process.env.JWT_SECRET || 'MISSING')
+console.log('JWT_EXPIRES_IN:', process.env.JWT_EXPIRES_IN || 'MISSING')
+console.log('DB_NAME:', process.env.DB_NAME || 'MISSING')
+console.log('PORT:', process.env.PORT || 'MISSING')
+console.log('==========================================')
+
 const express = require('express')
 const cors = require('cors')
 const path = require('path')
@@ -7,30 +19,39 @@ const app = express()
 const PORT = process.env.PORT || 4000
 
 // Middleware
-app.use(cors())
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  credentials: true
+}))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 // Static files middleware untuk serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
-// Routes
+// Routes - Existing
 const authRoutes = require('./src/routes/auth.routes')
-const lettersRoutes = require('./src/routes/letters.routes')  // Updated letters routes
+const lettersRoutes = require('./src/routes/letters.routes')
 const usersRoutes = require('./src/routes/users.routes')
 const proposalsRoutes = require('./src/routes/proposals.routes')
 const invitesRoutes = require('./src/routes/invites.routes')
 const agendaRoutes = require('./src/routes/agenda.routes')
 const dispositionsRoutes = require('./src/routes/dispositions.routes')
 
-// API Routes
+// NEW: Executive Routes untuk Dashboard Ketua
+const executiveRoutes = require('./src/routes/executive.routes')
+
+// API Routes - Existing
 app.use('/api/auth', authRoutes)
-app.use('/api/letters', lettersRoutes)  // Updated dengan file upload support
+app.use('/api/letters', lettersRoutes)
 app.use('/api/users', usersRoutes)
 app.use('/api/proposals', proposalsRoutes)
 app.use('/api/invites', invitesRoutes)
 app.use('/api/agenda', agendaRoutes)
 app.use('/api/dispositions', dispositionsRoutes)
+
+// NEW: Executive API Routes
+app.use('/api/executive', executiveRoutes)
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -38,7 +59,14 @@ app.get('/api/health', (req, res) => {
     success: true,
     message: 'RI7 API Server is running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    environment: {
+      jwt_secret: process.env.JWT_SECRET ? 'LOADED' : 'MISSING',
+      jwt_expires_in: process.env.JWT_EXPIRES_IN || 'DEFAULT',
+      db_name: process.env.DB_NAME || 'NOT_SET',
+      node_env: process.env.NODE_ENV || 'development'
+    },
+    executive_dashboard: 'Active'
   })
 })
 
@@ -48,6 +76,10 @@ app.get('/api', (req, res) => {
     success: true,
     message: 'Sistem Informasi Surat RI7 API',
     version: '1.0.0',
+    security: {
+      jwt_expires_in: process.env.JWT_EXPIRES_IN || 'NOT_SET',
+      auto_logout: process.env.JWT_EXPIRES_IN === '12h' ? 'Enabled - 12 hours' : 'Check .env configuration'
+    },
     endpoints: {
       auth: '/api/auth',
       letters: '/api/letters',
@@ -55,7 +87,15 @@ app.get('/api', (req, res) => {
       proposals: '/api/proposals',
       invites: '/api/invites',
       agenda: '/api/agenda',
-      dispositions: '/api/dispositions'
+      dispositions: '/api/dispositions',
+      executive: '/api/executive'
+    },
+    executive_features: {
+      dashboard: '/api/executive/surat-summary',
+      proposals: '/api/executive/proposals',
+      attendance: '/api/executive/undangan',
+      notifications: '/api/executive/notifications',
+      health: '/api/executive/health'
     },
     features: {
       fileUpload: 'Supported (max 10MB)',
@@ -135,14 +175,24 @@ app.listen(PORT, () => {
   console.log(`📁 API Base URL: http://localhost:${PORT}/api`)
   console.log(`📂 File Uploads: http://localhost:${PORT}/uploads`)
   console.log(`🏥 Health Check: http://localhost:${PORT}/api/health`)
+  
+  // Environment status
+  const jwtStatus = process.env.JWT_SECRET ? '✅ LOADED' : '❌ MISSING'
+  const expiresStatus = process.env.JWT_EXPIRES_IN || '❌ NOT SET'
+  
+  console.log(`🔐 JWT Secret: ${jwtStatus}`)
+  console.log(`⏰ JWT Expires: ${expiresStatus}`)
+  
+  if (!process.env.JWT_SECRET || !process.env.JWT_EXPIRES_IN) {
+    console.log('\n⚠️  WARNING: Environment variables not loaded!')
+    console.log('   Check if .env file exists and has correct format')
+    console.log('   Expected location: /backend/.env')
+  }
+  
   console.log(`\n📋 Available endpoints:`)
-  console.log(`   - POST /api/letters (Create with file upload)`)
-  console.log(`   - GET  /api/letters (List with filters)`)
-  console.log(`   - GET  /api/letters/:id (Detail)`)
-  console.log(`   - PUT  /api/letters/:id (Update)`)
-  console.log(`   - DEL  /api/letters/:id (Delete)`)
-  console.log(`   - GET  /api/letters/stats (Dashboard stats)`)
-  console.log(`\n💾 Database: MySQL with support for all letter types`)
-  console.log(`📤 File Upload: PDF, DOC, DOCX, JPG, PNG (max 10MB)`)
-  console.log(`\n✨ Ready to handle frontend integration!\n`)
+  console.log(`   - POST /api/auth/login`)
+  console.log(`   - GET  /api/health`)
+  console.log(`   - GET  /api/executive/notifications`)
+  console.log(`   - GET  /api/letters`)
+  console.log(`\n✨ Ready to handle requests!\n`)
 })

@@ -11,16 +11,20 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [mounted, setMounted] = useState(false)
   
-  const { login, isAuthenticated } = useAuth()
+  const { login, isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
     setMounted(true)
-    // Redirect if already logged in
-    if (isAuthenticated) {
-      navigate('/dashboard')
+    // Redirect if already logged in - SMART REDIRECT
+    if (isAuthenticated && user) {
+      if (user.role === 'ketua' || user.role === 'admin') {
+        navigate('/dashboard') // Will show KetuaDashboard
+      } else {
+        navigate('/dashboard') // Will show StafDashboard
+      }
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, user, navigate])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -39,14 +43,19 @@ const Login = () => {
       const data = await response.json()
 
       if (data.success) {
-        setMessage(`Login berhasil! Selamat datang ${data.data.user.name}`)
+        const userData = data.data.user
+        setMessage(`Login berhasil! Selamat datang ${userData.name}`)
         
         // Use the login function from useAuth
-        login(data.data.user, data.data.token)
+        login(userData, data.data.token)
         
-        // Navigate to dashboard
+        // SMART REDIRECT based on role
         setTimeout(() => {
-          navigate('/dashboard')
+          if (userData.role === 'ketua' || userData.role === 'admin') {
+            navigate('/executive') // KetuaDashboard
+          } else {
+            navigate('/dashboard') // StafDashboard
+          }
         }, 1000)
       } else {
         setMessage(`${data.error.message}`)
@@ -178,6 +187,23 @@ const Login = () => {
           }}>
             Sekretariat Jenderal DPD RI
           </p>
+
+          {/* Demo credentials info */}
+          <div style={{
+            position: 'absolute',
+            bottom: '30px',
+            left: '30px',
+            background: 'rgba(255, 255, 255, 0.1)',
+            padding: '15px',
+            borderRadius: '12px',
+            backdropFilter: 'blur(10px)',
+            fontSize: '12px',
+            lineHeight: '1.4'
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px' }}>🧪 Demo Accounts:</div>
+            <div>👑 Ketua: ketua@test.com / password</div>
+            <div>👤 Staff: staff@test.com / password</div>
+          </div>
         </div>
 
         {/* Right side */}
