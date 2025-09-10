@@ -1,4 +1,3 @@
-// Path: /backend/src/controllers/auth.controller.js
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/database');

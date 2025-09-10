@@ -200,9 +200,9 @@ const Login = () => {
             fontSize: '12px',
             lineHeight: '1.4'
           }}>
-            <div style={{ fontWeight: '600', marginBottom: '8px' }}>🧪 Demo Accounts:</div>
-            <div>👑 Ketua: ketua@test.com / password</div>
-            <div>👤 Staff: staff@test.com / password</div>
+            {/* <div style={{ fontWeight: '600', marginBottom: '8px' }}>🧪 Demo Accounts:</div> */}
+            {/* <div>👑 Ketua: ketua@test.com / password</div> */}
+            {/* <div>👤 Staff: staff@test.com / password</div> */}
           </div>
         </div>
 

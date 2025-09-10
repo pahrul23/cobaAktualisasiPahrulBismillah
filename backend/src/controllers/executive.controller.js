@@ -1,4 +1,3 @@
-// Path: /backend/src/controllers/executive.controller.js - IMPROVED VERSION
 const db = require('../config/database');
 
 const executiveController = {

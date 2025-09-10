@@ -1,4 +1,3 @@
-// agenda.controller.js - FIXED VERSION with proper field names for frontend
 const db = require("../config/database");
 
 const agendaController = {
