@@ -110,7 +110,7 @@ const LetterDetailModal = ({
     switch (status) {
       case "baru":
         return { bg: "#fef3c7", text: "#92400e", label: "Baru" };
-      case "proses":
+      case "diproses":
         return { bg: "#dbeafe", text: "#1e40af", label: "Dalam Proses" };
       case "selesai":
         return { bg: "#d1fae5", text: "#065f46", label: "Selesai" };
@@ -128,6 +128,7 @@ const LetterDetailModal = ({
       year: "numeric",
     });
   };
+  
   // Format date untuk input HTML
   const formatDateForInput = (dateValue) => {
     if (!dateValue) return "";
@@ -155,7 +156,6 @@ const LetterDetailModal = ({
       // Create FormData for multipart upload
       const submitData = new FormData();
 
-      // Append form fields
       // Append form fields dengan format tanggal yang benar
       Object.keys(formData).forEach((key) => {
         if (formData[key] !== null && formData[key] !== undefined) {
@@ -166,7 +166,6 @@ const LetterDetailModal = ({
             key === "tanggal_terima" ||
             key === "tanggal_surat" ||
             key === "hari_tanggal" ||
-            key === "audiensi_tanggal" ||
             key === "hari_tanggal_acara" ||
             key === "tanggal_kegiatan" ||
             key === "batas_waktu_respon"
@@ -204,7 +203,7 @@ const LetterDetailModal = ({
         setTimeout(() => {
           setMessage("");
           onClose();
-        }, 3000); // Ubah dari 1500 menjadi 3000 (3 detik)
+        }, 3000);
       } else {
         setMessage(data.message || "Gagal mengupdate surat");
       }
@@ -430,7 +429,6 @@ const LetterDetailModal = ({
               flex: 1,
               overflowY: "auto",
               padding: "32px",
-              // maxHeight: "calc(95vh - 200px)",
             }}
           >
             {editMode ? (
@@ -500,7 +498,7 @@ const LetterDetailModal = ({
                       }}
                     >
                       <option value="baru">Baru</option>
-                      <option value="proses">Dalam Proses</option>
+                      <option value="diproses">Dalam Proses</option>
                       <option value="selesai">Selesai</option>
                       <option value="ditolak">Ditolak</option>
                     </select>
@@ -663,9 +661,8 @@ const LetterDetailModal = ({
                     </div>
                   )}
                 </div>
-                {/* Field Tambahan per Jenis Surat di Edit Mode - TAMBAHKAN INI */}
 
-                {/* AUDIENSI */}
+                {/* AUDIENSI - FIXED */}
                 {formData.jenis === "audiensi" && (
                   <div
                     style={{
@@ -708,7 +705,7 @@ const LetterDetailModal = ({
                         </label>
                         <input
                           type="date"
-                          value={formData.hari_tanggal || ""}
+                          value={formatDateForInput(formData.hari_tanggal) || ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -910,7 +907,7 @@ const LetterDetailModal = ({
                   </div>
                 )}
 
-                {/* UNDANGAN */}
+                {/* UNDANGAN - FIXED */}
                 {formData.jenis === "undangan" && (
                   <div
                     style={{
@@ -953,7 +950,7 @@ const LetterDetailModal = ({
                         </label>
                         <input
                           type="date"
-                          value={formData.hari_tanggal_acara || ""}
+                          value={formatDateForInput(formData.hari_tanggal_acara) || ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -1134,7 +1131,7 @@ const LetterDetailModal = ({
                           marginBottom: "8px",
                         }}
                       >
-                        Dokumentasi
+                        Disposisi
                       </label>
                       <textarea
                         value={formData.dokumentasi || ""}
@@ -1159,7 +1156,7 @@ const LetterDetailModal = ({
                   </div>
                 )}
 
-                {/* PROPOSAL */}
+                {/* PROPOSAL - ENHANCED WITH MISSING FIELDS */}
                 {formData.jenis === "proposal" && (
                   <div
                     style={{
@@ -1229,7 +1226,38 @@ const LetterDetailModal = ({
                             marginBottom: "8px",
                           }}
                         >
-                          Instansi/Lembaga
+                          Instansi
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.instansi || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              instansi: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Instansi/Lembaga/Komunitas
                         </label>
                         <input
                           type="text"
@@ -1335,11 +1363,73 @@ const LetterDetailModal = ({
                         </label>
                         <input
                           type="date"
-                          value={formData.tanggal_kegiatan || ""}
+                          value={formatDateForInput(formData.tanggal_kegiatan) || ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
                               tanggal_kegiatan: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Lokasi Kegiatan
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.lokasi_kegiatan || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              lokasi_kegiatan: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Lokasi Kegiatan Detail
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.lokasi_kegiatan_detail || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              lokasi_kegiatan_detail: e.target.value,
                             })
                           }
                           style={{
@@ -1383,6 +1473,265 @@ const LetterDetailModal = ({
                           }}
                         />
                       </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          PIC Penanganan
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.pic_penanganan || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              pic_penanganan: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Nomor Rekening
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.nomor_rekening || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              nomor_rekening: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: "#374151",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Jumlah Dibantu
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.jumlah_dibantu || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              jumlah_dibantu: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: "12px",
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Text fields yang panjang */}
+                    <div style={{ marginTop: "16px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: "#374151",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        Ringkasan
+                      </label>
+                      <textarea
+                        value={formData.ringkasan || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            ringkasan: e.target.value,
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "12px 16px",
+                          border: "2px solid #e5e7eb",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          outline: "none",
+                          minHeight: "80px",
+                          resize: "vertical",
+                        }}
+                      />
+                    </div>
+                    
+                    <div style={{ marginTop: "16px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: "#374151",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        Ringkasan Kegiatan
+                      </label>
+                      <textarea
+                        value={formData.ringkasan_kegiatan || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            ringkasan_kegiatan: e.target.value,
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "12px 16px",
+                          border: "2px solid #e5e7eb",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          outline: "none",
+                          minHeight: "80px",
+                          resize: "vertical",
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ marginTop: "16px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: "#374151",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        Rekomendasi/Dukungan
+                      </label>
+                      <textarea
+                        value={formData.rekomendasi_dukungan || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            rekomendasi_dukungan: e.target.value,
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "12px 16px",
+                          border: "2px solid #e5e7eb",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          outline: "none",
+                          minHeight: "80px",
+                          resize: "vertical",
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ marginTop: "16px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: "#374151",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        Catatan
+                      </label>
+                      <textarea
+                        value={formData.catatan || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            catatan: e.target.value,
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "12px 16px",
+                          border: "2px solid #e5e7eb",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          outline: "none",
+                          minHeight: "80px",
+                          resize: "vertical",
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ marginTop: "16px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: "#374151",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        Catatan/Tindak Lanjut
+                      </label>
+                      <textarea
+                        value={formData.catatan_tindak_lanjut || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            catatan_tindak_lanjut: e.target.value,
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "12px 16px",
+                          border: "2px solid #e5e7eb",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          outline: "none",
+                          minHeight: "80px",
+                          resize: "vertical",
+                        }}
+                      />
                     </div>
                   </div>
                 )}
@@ -1617,7 +1966,7 @@ const LetterDetailModal = ({
                         </label>
                         <input
                           type="date"
-                          value={formData.batas_waktu_respon || ""}
+                          value={formatDateForInput(formData.batas_waktu_respon) || ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -1672,8 +2021,6 @@ const LetterDetailModal = ({
                     </div>
                   </div>
                 )}
-
-                {/* AKHIR TAMBAHAN */}
               </div>
             ) : (
               // View Mode
@@ -1880,7 +2227,7 @@ const LetterDetailModal = ({
                   </div>
                 )}
 
-                {/* File attachments section - FIXED */}
+                {/* File attachments section */}
                 <div>
                   <h3
                     style={{
@@ -1893,7 +2240,6 @@ const LetterDetailModal = ({
                     Lampiran File
                   </h3>
 
-                  {/* Cek apakah ada file */}
                   {letter.file_surat_name ? (
                     <div
                       style={{
@@ -1994,7 +2340,7 @@ const LetterDetailModal = ({
                   )}
                 </div>
 
-                {/* TAMBAHKAN INI - Field Tambahan per Jenis Surat */}
+                {/* VIEW MODE - Field Detail per Jenis Surat - FIXED */}
                 {letter.jenis === "undangan" && (
                   <div>
                     <h3
@@ -2031,7 +2377,7 @@ const LetterDetailModal = ({
                               fontWeight: "500",
                             }}
                           >
-                            Tanggal Acara
+                            Hari/Tanggal Acara
                           </div>
                           <div
                             style={{
@@ -2062,7 +2408,7 @@ const LetterDetailModal = ({
                               color: "#1a202c",
                             }}
                           >
-                            {letter.undangan_pukul || "-"}
+                            {letter.pukul || "-"}
                           </div>
                         </div>
                         <div>
@@ -2082,7 +2428,7 @@ const LetterDetailModal = ({
                               color: "#1a202c",
                             }}
                           >
-                            {letter.undangan_tempat || "-"}
+                            {letter.tempat || "-"}
                           </div>
                         </div>
                         <div>
@@ -2146,7 +2492,7 @@ const LetterDetailModal = ({
                           </div>
                         </div>
                       </div>
-                      {letter.undangan_dokumentasi && (
+                      {letter.dokumentasi && (
                         <div style={{ marginTop: "16px" }}>
                           <div
                             style={{
@@ -2155,7 +2501,7 @@ const LetterDetailModal = ({
                               fontWeight: "500",
                             }}
                           >
-                            Dokumentasi
+                            Disposisi
                           </div>
                           <div
                             style={{
@@ -2165,13 +2511,14 @@ const LetterDetailModal = ({
                               marginTop: "4px",
                             }}
                           >
-                            {letter.undangan_dokumentasi}
+                            {letter.dokumentasi}
                           </div>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
+
                 {letter.jenis === "audiensi" && (
                   <div>
                     <h3
@@ -2217,8 +2564,8 @@ const LetterDetailModal = ({
                               color: "#1a202c",
                             }}
                           >
-                            {letter.audiensi_tanggal
-                              ? formatDate(letter.audiensi_tanggal)
+                            {letter.hari_tanggal
+                              ? formatDate(letter.hari_tanggal)
                               : "-"}
                           </div>
                         </div>
@@ -2239,7 +2586,7 @@ const LetterDetailModal = ({
                               color: "#1a202c",
                             }}
                           >
-                            {letter.audiensi_pukul || "-"}
+                            {letter.pukul || "-"}
                           </div>
                         </div>
                         <div>
@@ -2259,7 +2606,7 @@ const LetterDetailModal = ({
                               color: "#1a202c",
                             }}
                           >
-                            {letter.audiensi_tempat || "-"}
+                            {letter.tempat || "-"}
                           </div>
                         </div>
                         <div>
@@ -2324,7 +2671,6 @@ const LetterDetailModal = ({
                         </div>
                       </div>
 
-                      {/* Field text panjang */}
                       {letter.topik_audiensi && (
                         <div style={{ marginTop: "16px" }}>
                           <div
@@ -2349,7 +2695,7 @@ const LetterDetailModal = ({
                         </div>
                       )}
 
-                      {letter.audiensi_dokumentasi && (
+                      {letter.dokumentasi && (
                         <div style={{ marginTop: "16px" }}>
                           <div
                             style={{
@@ -2358,7 +2704,7 @@ const LetterDetailModal = ({
                               fontWeight: "500",
                             }}
                           >
-                            Dokumentasi
+                            Disposisi
                           </div>
                           <div
                             style={{
@@ -2368,7 +2714,7 @@ const LetterDetailModal = ({
                               marginTop: "4px",
                             }}
                           >
-                            {letter.audiensi_dokumentasi}
+                            {letter.dokumentasi}
                           </div>
                         </div>
                       )}
@@ -2554,6 +2900,26 @@ const LetterDetailModal = ({
                               fontWeight: "500",
                             }}
                           >
+                            Lokasi Kegiatan Detail
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: "600",
+                              color: "#1a202c",
+                            }}
+                          >
+                            {letter.lokasi_kegiatan_detail || "-"}
+                          </div>
+                        </div>
+                        <div>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              color: "#64748b",
+                              fontWeight: "500",
+                            }}
+                          >
                             Total Anggaran
                           </div>
                           <div
@@ -2661,6 +3027,30 @@ const LetterDetailModal = ({
                         </div>
                       )}
 
+                      {letter.ringkasan_kegiatan && (
+                        <div style={{ marginTop: "16px" }}>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              color: "#64748b",
+                              fontWeight: "500",
+                            }}
+                          >
+                            Ringkasan Kegiatan
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "14px",
+                              color: "#374151",
+                              lineHeight: "1.5",
+                              marginTop: "4px",
+                            }}
+                          >
+                            {letter.ringkasan_kegiatan}
+                          </div>
+                        </div>
+                      )}
+
                       {letter.rekomendasi_dukungan && (
                         <div style={{ marginTop: "16px" }}>
                           <div
@@ -2681,6 +3071,30 @@ const LetterDetailModal = ({
                             }}
                           >
                             {letter.rekomendasi_dukungan}
+                          </div>
+                        </div>
+                      )}
+
+                      {letter.catatan && (
+                        <div style={{ marginTop: "16px" }}>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              color: "#64748b",
+                              fontWeight: "500",
+                            }}
+                          >
+                            Catatan
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "14px",
+                              color: "#374151",
+                              lineHeight: "1.5",
+                              marginTop: "4px",
+                            }}
+                          >
+                            {letter.catatan}
                           </div>
                         </div>
                       )}
@@ -2711,6 +3125,7 @@ const LetterDetailModal = ({
                     </div>
                   </div>
                 )}
+
                 {letter.jenis === "pengaduan" && (
                   <div>
                     <h3
@@ -2905,8 +3320,6 @@ const LetterDetailModal = ({
                   </div>
                 )}
 
-                {/* AKHIR TAMBAHAN */}
-
                 {/* Metadata */}
                 <div
                   style={{
@@ -2917,9 +3330,6 @@ const LetterDetailModal = ({
                     color: "#64748b",
                   }}
                 >
-                  <div style={{ marginBottom: "8px" }}>
-                    {/* <strong>Dibuat oleh:</strong> {letter.created_by_name} */}
-                  </div>
                   <div>
                     <strong>Dibuat pada:</strong>{" "}
                     {formatDate(letter.created_at)}

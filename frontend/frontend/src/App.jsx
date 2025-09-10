@@ -17,6 +17,9 @@ import Settings from './pages/Settings/SettingsPage'
 // NEW: Import Executive Dashboard sesuai struktur path yang benar
 import KetuaDashboard from './pages/Executive/KetuaDashboard'
 
+// Import Disposisi Page
+import DisposisiPage from './pages/Disposisi/DisposisiPage'
+
 // Lazy load AddLetter component with error handling
 const AddLetter = lazy(() =>
   import('./pages/Letters/AddLetter').catch(error => {
@@ -151,6 +154,16 @@ function App() {
           }
         />
 
+        {/* Disposisi Management - untuk semua role */}
+        <Route
+          path="/disposisi"
+          element={
+            <ProtectedRoute>
+              <DisposisiPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Approval System - hanya Ketua dan Admin (sesuai chat sebelumnya) */}
         <Route
           path="/approval"
@@ -189,10 +202,7 @@ function App() {
           path="/notifications"
           element={
             <ProtectedRoute>
-              <div style={{ padding: '20px' }}>
-                <h2>Notifications</h2>
-                <p>Component notifications akan diintegrasikan</p>
-              </div>
+              <ReportsList />
             </ProtectedRoute>
           }
         />

@@ -114,7 +114,7 @@ const lettersController = {
           message: "File surat wajib diupload",
         });
       }
-      
+
       // Insert main letter record
       const letterQuery = `
         INSERT INTO letters (
@@ -194,7 +194,13 @@ const lettersController = {
   },
 
   // Insert additional fields - BACKWARD COMPATIBLE
-  async insertAdditionalFields(connection, letterId, jenis, fields, reqBody = {}) {
+  async insertAdditionalFields(
+    connection,
+    letterId,
+    jenis,
+    fields,
+    reqBody = {}
+  ) {
     console.log(
       "Inserting additional fields for jenis:",
       jenis,
@@ -251,7 +257,7 @@ const lettersController = {
 
           console.log("DEBUG - tanggalAgenda akan disimpan:", tanggalAgenda);
 
-          const perihal = reqBody.perihal || 'Undangan';
+          const perihal = reqBody.perihal || "Undangan";
           const catatanKehadiran = `Undangan: ${perihal}. Acara: ${
             fields.jenis_acara || ""
           }. Tempat: ${fields.tempat || "TBD"}`;
@@ -277,13 +283,15 @@ const lettersController = {
         }
         break;
 
+      // HAPUS BAGIAN INI - DUPLIKAT
+      // AUTO-INSERT AGENDA - BACKWARD COMPATIBLE (kedua kolom)
       case "audiensi":
         const audiensiQuery = `
-          INSERT INTO letter_audiensi (
-            letter_id, hari_tanggal, pukul, tempat, nama_pemohon,
-            instansi_organisasi, jumlah_peserta, topik_audiensi, dokumentasi
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
+    INSERT INTO letter_audiensi (
+      letter_id, hari_tanggal, pukul, tempat, nama_pemohon,
+      instansi_organisasi, jumlah_peserta, topik_audiensi, dokumentasi
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
         await connection.execute(audiensiQuery, [
           letterId,
           fields.hari_tanggal || null,
@@ -296,47 +304,7 @@ const lettersController = {
           fields.dokumentasi || null,
         ]);
         console.log("Audiensi fields inserted");
-
-        // AUTO-INSERT AGENDA - BACKWARD COMPATIBLE (kedua kolom)
-        try {
-          const agendaQuery = `
-            INSERT INTO agenda (
-              letter_id, jenis_surat, status_kehadiran, catatan_kehadiran,
-              tanggal_agenda, tanggal_konfirmasi, created_by
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-          `;
-
-          const tanggalAgenda =
-            fields.hari_tanggal || new Date().toISOString().split("T")[0];
-
-          console.log("DEBUG - tanggalAgenda audiensi:", tanggalAgenda);
-          
-          const perihal = reqBody.perihal || 'Audiensi';
-          const catatanKehadiran = `Audiensi: ${perihal}. Topik: ${
-            fields.topik_audiensi || ""
-          }. Pemohon: ${fields.nama_pemohon || ""}. Tempat: ${
-            fields.tempat || "TBD"
-          }`;
-
-          await connection.execute(agendaQuery, [
-            letterId,
-            "audiensi",
-            "belum_konfirmasi",
-            catatanKehadiran,
-            tanggalAgenda, // kolom baru
-            tanggalAgenda, // kolom lama untuk backward compatibility
-            1,
-          ]);
-
-          console.log(
-            `Auto-inserted agenda for audiensi letter ID: ${letterId} pada tanggal: ${tanggalAgenda}`
-          );
-        } catch (agendaError) {
-          console.error(
-            `Failed to auto-insert agenda for audiensi:`,
-            agendaError
-          );
-        }
+        // TIDAK ada auto-insert agenda
         break;
 
       case "proposal":
@@ -699,7 +667,13 @@ const lettersController = {
   },
 
   // Update additional fields
-  async updateAdditionalFields(connection, letterId, jenis, fields, reqBody = {}) {
+  async updateAdditionalFields(
+    connection,
+    letterId,
+    jenis,
+    fields,
+    reqBody = {}
+  ) {
     console.log(
       "Updating additional fields for jenis:",
       jenis,

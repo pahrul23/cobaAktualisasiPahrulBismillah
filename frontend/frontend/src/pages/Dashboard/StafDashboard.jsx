@@ -1,382 +1,508 @@
 import DashboardLayout from '../../components/Layout/DashboardLayout'
+import { useState, useEffect } from 'react'
 
 const StafDashboard = () => {
-  const stats = [
-    { 
-      title: 'Total Surat', 
-      value: '248', 
-      gradient: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
-      icon: '📄' 
-    },
-    { 
-      title: 'Menunggu Proses', 
-      value: '24', 
-      gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
-      icon: '⏳' 
-    },
-    { 
-      title: 'Selesai', 
-      value: '187', 
-      gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-      icon: '✅' 
-    },
-    { 
-      title: 'Ditolak', 
-      value: '12', 
-      gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-      icon: '❌' 
-    }
-  ]
+  const [stats, setStats] = useState([])
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const recentActivity = [
-    { icon: '📄', text: 'Surat UN-005/2025 berhasil dibuat', time: '2 jam lalu' },
-    { icon: '✅', text: 'Proposal PR-003/2025 disetujui Ketua', time: '4 jam lalu' },
-    { icon: '📝', text: 'Disposisi untuk surat PG-002/2025 dibuat', time: '6 jam lalu' }
-  ]
+  // Fetch dashboard data
+  useEffect(() => {
+    fetchDashboardData()
+    fetchNotifications()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch letter statistics by type
+      const response = await fetch('http://localhost:4000/api/letters/stats-by-type', {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setStats(data.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+      // Fallback data
+      setStats([
+        { jenis: 'pemberitahuan', count: 45, icon: '📢', color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+        { jenis: 'pengaduan', count: 32, icon: '📝', color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+        { jenis: 'proposal', count: 28, icon: '💼', color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
+        { jenis: 'undangan', count: 19, icon: '🎉', color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
+        { jenis: 'audiensi', count: 15, icon: '🤝', color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/notifications/recent', {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setNotifications(data.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error)
+      // Fallback notifications
+      setNotifications([
+        { icon: '📄', pesan: 'Surat pemberitahuan baru dari Kemendikbud', created_at: '2 jam lalu' },
+        { icon: '✅', pesan: 'Proposal pembangunan jembatan disetujui', created_at: '4 jam lalu' },
+        { icon: '📝', pesan: 'Pengaduan kerusakan jalan masuk agenda', created_at: '6 jam lalu' }
+      ])
+    }
+  }
+
+  const handleCreateLetter = () => {
+    window.location.href = 'http://localhost:5173/letters/add'
+  }
+
+  const handleViewLetterType = (jenis) => {
+    window.location.href = `http://localhost:5173/surat?jenis=${jenis}`
+  }
+
+  const getJenisName = (jenis) => {
+    const names = {
+      pemberitahuan: 'Pemberitahuan',
+      pengaduan: 'Pengaduan', 
+      proposal: 'Proposal',
+      undangan: 'Undangan',
+      audiensi: 'Audiensi'
+    }
+    return names[jenis] || jenis
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '400px',
+          fontSize: '18px',
+          color: '#6b7280',
+          fontFamily: "'Inter', sans-serif"
+        }}>
+          ⏳ Memuat data dashboard...
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   return (
     <DashboardLayout>
       <div style={{
-        display: 'grid',
-        gap: '24px',
-        width: '100%',
-        maxWidth: 'none',
-        fontFamily: "'Poppins', sans-serif"
+        padding: '0',
+        fontFamily: "'Inter', sans-serif",
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        minHeight: '100vh',
+        margin: '-24px',
+        paddingTop: '24px'
       }}>
         
-        {/* Stats Cards - Tanpa persentase */}
+        {/* Hero Section with Chart */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '20px'
+          padding: '40px 24px',
+          background: 'rgba(255,255,255,0.95)',
+          backdropFilter: 'blur(20px)',
+          margin: '0 24px 32px 24px',
+          borderRadius: '24px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.1)'
         }}>
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              style={{
-                background: stat.gradient,
-                borderRadius: '20px',
-                padding: '28px',
-                color: 'white',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                border: 'none',
-                position: 'relative',
-                overflow: 'hidden',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-4px)'
-                e.target.style.boxShadow = '0 12px 40px rgba(0,0,0,0.18)'
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)'
-                e.target.style.boxShadow = '0 8px 32px rgba(0,0,0,0.12)'
-              }}
-            >
-              {/* Background decoration */}
-              <div style={{
-                position: 'absolute',
-                top: '-20px',
-                right: '-20px',
-                width: '80px',
-                height: '80px',
-                background: 'rgba(255,255,255,0.1)',
-                borderRadius: '50%'
-              }}></div>
-              
-              {/* Icon only - no percentage */}
-              <div style={{
-                width: '52px',
-                height: '52px',
-                borderRadius: '16px',
-                background: 'rgba(255,255,255,0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '24px',
-                backdropFilter: 'blur(10px)',
-                marginBottom: '20px'
-              }}>
-                {stat.icon}
-              </div>
-              
-              <div style={{
-                fontSize: '36px',
-                fontWeight: '800',
-                fontFamily: "'Poppins', sans-serif",
-                marginBottom: '8px',
-                lineHeight: '1'
-              }}>
-                {stat.value}
-              </div>
-              <div style={{
-                fontSize: '16px',
-                opacity: 0.9,
-                fontWeight: '600',
-                fontFamily: "'Poppins', sans-serif"
-              }}>
-                {stat.title}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Main Content Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)',
-          gap: '24px'
-        }}>
-          
-          {/* Overview Chart */}
           <div style={{
-            background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
-            borderRadius: '24px',
-            padding: '32px',
-            color: 'white',
-            position: 'relative',
-            overflow: 'hidden',
-            minHeight: '300px'
+            display: 'grid',
+            gridTemplateColumns: '2fr 1fr',
+            gap: '32px',
+            alignItems: 'start'
           }}>
-            <div style={{
-              position: 'absolute',
-              top: '-30px',
-              right: '-30px',
-              width: '120px',
-              height: '120px',
-              background: 'rgba(255,255,255,0.1)',
-              borderRadius: '50%'
-            }}></div>
             
+            {/* Chart Section */}
             <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              marginBottom: '24px'
-            }}>
-              <div>
-                <h3 style={{
-                  margin: '0 0 8px 0',
-                  fontSize: '24px',
-                  fontWeight: '700',
-                  fontFamily: "'Poppins', sans-serif"
-                }}>
-                  Overview Surat
-                </h3>
-                <p style={{
-                  margin: 0,
-                  opacity: 0.8,
-                  fontSize: '16px',
-                  fontFamily: "'Poppins', sans-serif"
-                }}>
-                  Monthly progress
-                </p>
-              </div>
-              <button style={{
-                background: 'rgba(255,255,255,0.2)',
-                border: 'none',
-                borderRadius: '12px',
-                padding: '10px 16px',
-                color: 'white',
-                fontSize: '14px',
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: '600',
-                cursor: 'pointer',
-                backdropFilter: 'blur(10px)'
-              }}>
-                Monthly ▼
-              </button>
-            </div>
-
-            <div style={{
-              height: '140px',
-              background: 'rgba(255,255,255,0.1)',
-              borderRadius: '16px',
-              marginBottom: '24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '16px',
-              fontFamily: "'Poppins', sans-serif",
-              opacity: 0.7,
-              backdropFilter: 'blur(10px)'
-            }}>
-              [Chart Area - 248 Total Steps]
-            </div>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '16px'
-            }}>
-              <div style={{
-                background: 'rgba(255,255,255,0.15)',
-                borderRadius: '16px',
-                padding: '20px 16px',
-                textAlign: 'center',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <div style={{ 
-                  fontSize: '22px', 
-                  fontWeight: '800',
-                  fontFamily: "'Poppins', sans-serif"
-                }}>248</div>
-                <div style={{ 
-                  fontSize: '13px', 
-                  opacity: 0.8,
-                  fontFamily: "'Poppins', sans-serif"
-                }}>Total</div>
-              </div>
-              <div style={{
-                background: 'rgba(255,255,255,0.15)',
-                borderRadius: '16px',
-                padding: '20px 16px',
-                textAlign: 'center',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <div style={{ 
-                  fontSize: '22px', 
-                  fontWeight: '800',
-                  fontFamily: "'Poppins', sans-serif"
-                }}>24</div>
-                <div style={{ 
-                  fontSize: '13px', 
-                  opacity: 0.8,
-                  fontFamily: "'Poppins', sans-serif"
-                }}>Pending</div>
-              </div>
-              <div style={{
-                background: 'rgba(255,255,255,0.15)',
-                borderRadius: '16px',
-                padding: '20px 16px',
-                textAlign: 'center',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <div style={{ 
-                  fontSize: '22px', 
-                  fontWeight: '800',
-                  fontFamily: "'Poppins', sans-serif"
-                }}>187</div>
-                <div style={{ 
-                  fontSize: '13px', 
-                  opacity: 0.8,
-                  fontFamily: "'Poppins', sans-serif"
-                }}>Selesai</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column */}
-          <div style={{ display: 'grid', gap: '20px' }}>
-            
-            {/* Quick Actions */}
-            <div style={{
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               borderRadius: '20px',
-              padding: '28px',
+              padding: '32px',
               color: 'white',
               position: 'relative',
               overflow: 'hidden'
             }}>
+              {/* Floating shapes */}
               <div style={{
                 position: 'absolute',
-                top: '-15px',
-                right: '-15px',
-                width: '80px',
-                height: '80px',
+                top: '20px',
+                right: '20px',
+                width: '100px',
+                height: '100px',
                 background: 'rgba(255,255,255,0.1)',
-                borderRadius: '50%'
+                borderRadius: '50%',
+                filter: 'blur(40px)'
+              }}></div>
+              <div style={{
+                position: 'absolute',
+                bottom: '20px',
+                left: '20px',
+                width: '60px',
+                height: '60px',
+                background: 'rgba(255,255,255,0.15)',
+                borderRadius: '50%',
+                filter: 'blur(30px)'
               }}></div>
               
               <div style={{
-                fontSize: '48px',
-                marginBottom: '16px'
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: '32px'
               }}>
-                📄
+                <div>
+                  <h2 style={{
+                    margin: '0 0 8px 0',
+                    fontSize: '28px',
+                    fontWeight: '800',
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    Grafik Surat Bulanan
+                  </h2>
+                  <p style={{
+                    margin: 0,
+                    opacity: 0.9,
+                    fontSize: '16px',
+                    fontWeight: '400'
+                  }}>
+                    Progress surat per bulan 2025
+                  </p>
+                </div>
+                <select style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '12px 20px',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                </select>
               </div>
-              <h3 style={{
-                margin: '0 0 12px 0',
-                fontSize: '20px',
-                fontWeight: '700',
-                fontFamily: "'Poppins', sans-serif"
+
+              {/* Chart Area */}
+              <div style={{
+                height: '200px',
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: '16px',
+                marginBottom: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column',
+                gap: '12px',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,255,255,0.2)'
               }}>
-                Tambah Surat
-              </h3>
-              <p style={{
-                margin: '0 0 20px 0',
-                fontSize: '14px',
-                opacity: 0.9,
-                fontFamily: "'Poppins', sans-serif",
-                lineHeight: '1.5'
+                <div style={{ fontSize: '48px' }}>📊</div>
+                <div style={{ fontSize: '18px', fontWeight: '600' }}>
+                  Total {stats.reduce((acc, stat) => acc + stat.count, 0)} Surat
+                </div>
+                <div style={{ fontSize: '14px', opacity: 0.7 }}>
+                  Jan-Sep 2025 • Chart Implementation
+                </div>
+              </div>
+
+              {/* Summary Cards */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '16px'
               }}>
-                Buat surat baru dengan mudah
-              </p>
-              <button style={{
-                background: 'rgba(255,255,255,0.2)',
-                border: 'none',
-                borderRadius: '12px',
-                padding: '12px 20px',
-                color: 'white',
-                fontSize: '14px',
-                fontWeight: '600',
-                fontFamily: "'Poppins', sans-serif",
-                cursor: 'pointer',
-                backdropFilter: 'blur(10px)'
-              }}>
-                Buat Sekarang →
-              </button>
+                <div style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  textAlign: 'center',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255,255,255,0.2)'
+                }}>
+                  <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '4px' }}>
+                    {stats.reduce((acc, stat) => acc + stat.count, 0)}
+                  </div>
+                  <div style={{ fontSize: '12px', opacity: 0.8 }}>Total Surat</div>
+                </div>
+                <div style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  textAlign: 'center',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255,255,255,0.2)'
+                }}>
+                  <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '4px' }}>24</div>
+                  <div style={{ fontSize: '12px', opacity: 0.8 }}>Bulan Ini</div>
+                </div>
+              </div>
             </div>
 
-            {/* Recent Activity */}
-            <div style={{
-              background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-              borderRadius: '20px',
-              padding: '24px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
-            }}>
-              <h3 style={{
-                margin: '0 0 20px 0',
-                fontSize: '18px',
-                fontWeight: '700',
-                color: '#1a202c',
-                fontFamily: "'Poppins', sans-serif"
-              }}>
-                Aktivitas Terbaru
-              </h3>
+            {/* Right Sidebar */}
+            <div style={{ display: 'grid', gap: '24px' }}>
               
-              <div style={{ display: 'grid', gap: '12px' }}>
-                {recentActivity.map((activity, index) => (
-                  <div key={index} style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '12px',
-                    padding: '12px',
-                    background: 'white',
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              {/* Create Letter Button */}
+              <div style={{
+                background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                borderRadius: '20px',
+                padding: '32px',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onClick={handleCreateLetter}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)'
+                e.currentTarget.style.boxShadow = '0 20px 40px rgba(67, 233, 123, 0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+              >
+                <div style={{
+                  position: 'absolute',
+                  top: '-20px',
+                  right: '-20px',
+                  width: '80px',
+                  height: '80px',
+                  background: 'rgba(255,255,255,0.1)',
+                  borderRadius: '50%',
+                  filter: 'blur(20px)'
+                }}></div>
+                
+                <div style={{ fontSize: '56px', marginBottom: '16px' }}>📄</div>
+                <h3 style={{
+                  margin: '0 0 12px 0',
+                  fontSize: '22px',
+                  fontWeight: '700'
+                }}>
+                  Buat Surat Baru
+                </h3>
+                <p style={{
+                  margin: '0 0 24px 0',
+                  fontSize: '14px',
+                  opacity: 0.9,
+                  lineHeight: '1.5'
+                }}>
+                  Tambah surat pemberitahuan, pengaduan, proposal, undangan, atau audiensi
+                </p>
+                <div style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  borderRadius: '12px',
+                  padding: '12px 24px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  Buat Sekarang →
+                </div>
+              </div>
+
+              {/* Notifications */}
+              <div style={{
+                background: 'white',
+                borderRadius: '20px',
+                padding: '24px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '20px'
+                }}>
+                  <h3 style={{
+                    margin: 0,
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: '#1a202c'
                   }}>
-                    <span style={{ fontSize: '16px' }}>{activity.icon}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        fontSize: '14px',
-                        color: '#374151',
-                        marginBottom: '4px',
-                        fontFamily: "'Poppins', sans-serif"
-                      }}>
-                        {activity.text}
-                      </div>
-                      <div style={{
-                        fontSize: '12px',
-                        color: '#9ca3af',
-                        fontFamily: "'Poppins', sans-serif"
-                      }}>
-                        {activity.time}
+                    Notifikasi Terbaru
+                  </h3>
+                  <button style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#667eea',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}>
+                    Lihat Semua →
+                  </button>
+                </div>
+                
+                <div style={{ display: 'grid', gap: '12px' }}>
+                  {notifications.length > 0 ? notifications.slice(0, 3).map((notification, index) => (
+                    <div key={index} style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '12px',
+                      padding: '16px',
+                      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                      borderRadius: '12px',
+                      transition: 'transform 0.2s ease',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateX(4px)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateX(0)'
+                    }}
+                    >
+                      <span style={{ fontSize: '18px' }}>{notification.icon}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontSize: '14px',
+                          color: '#374151',
+                          marginBottom: '4px',
+                          lineHeight: '1.4',
+                          fontWeight: '500'
+                        }}>
+                          {notification.pesan}
+                        </div>
+                        <div style={{
+                          fontSize: '12px',
+                          color: '#9ca3af'
+                        }}>
+                          {notification.created_at}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )) : (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '32px',
+                      color: '#9ca3af',
+                      fontSize: '14px'
+                    }}>
+                      📭 Tidak ada notifikasi baru
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Letter Type Cards */}
+        <div style={{
+          padding: '0 24px 40px 24px'
+        }}>
+          <h2 style={{
+            margin: '0 0 24px 0',
+            fontSize: '28px',
+            fontWeight: '800',
+            color: 'white',
+            textAlign: 'center',
+            textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            Statistik Surat Berdasarkan Jenis
+          </h2>
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '24px'
+          }}>
+            {stats.map((stat, index) => (
+              <div
+                key={index}
+                style={{
+                  background: 'white',
+                  borderRadius: '24px',
+                  padding: '32px',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
+                  border: 'none',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+                onClick={() => handleViewLetterType(stat.jenis)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-8px)'
+                  e.currentTarget.style.boxShadow = '0 30px 80px rgba(0,0,0,0.15)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 20px 60px rgba(0,0,0,0.1)'
+                }}
+              >
+                {/* Gradient accent */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '4px',
+                  background: stat.color
+                }}></div>
+                
+                {/* Icon with gradient background */}
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '20px',
+                  background: stat.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '28px',
+                  marginBottom: '24px',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+                }}>
+                  {stat.icon}
+                </div>
+                
+                <div style={{
+                  fontSize: '48px',
+                  fontWeight: '800',
+                  marginBottom: '8px',
+                  lineHeight: '1',
+                  background: stat.color,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  {stat.count}
+                </div>
+                <div style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#374151',
+                  marginBottom: '8px'
+                }}>
+                  {getJenisName(stat.jenis)}
+                </div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#9ca3af'
+                }}>
+                  Klik untuk melihat detail
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

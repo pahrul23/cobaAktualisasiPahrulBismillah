@@ -1,23 +1,20 @@
-// agenda.controller.js - DEBUGGING VERSION with detailed logging
+// agenda.controller.js - FIXED VERSION with proper field names for frontend
 const db = require("../config/database");
 
 const agendaController = {
-  // Get all agenda - ENHANCED DEBUGGING
+  // Get all agenda - ENHANCED with better JOIN
   async getAllAgenda(req, res) {
     try {
       const { date, month, year } = req.query;
       
       console.log("=== ENHANCED AGENDA DEBUG ===");
       console.log("Query params:", { date, month, year });
-      console.log("Server timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-      console.log("Server date:", new Date().toISOString());
 
       let whereConditions = [];
       let queryParams = [];
 
-      // Filter berdasarkan tanggal jika ada - SUPPORT KEDUA KOLOM
+      // Filter berdasarkan tanggal jika ada
       if (date) {
-        // Cek kedua kolom tanggal untuk backward compatibility
         whereConditions.push("(DATE(a.tanggal_agenda) = ? OR DATE(a.tanggal_konfirmasi) = ?)");
         queryParams.push(date, date);
         console.log("Filtering by date:", date);
@@ -27,41 +24,45 @@ const agendaController = {
         ? "WHERE " + whereConditions.join(" AND ") 
         : "";
 
-      // Query dengan JOIN ke tabel letters dan detail surat - INCLUDE BOTH DATE COLUMNS
+      // IMPROVED Query dengan proper time formatting
       const query = `
         SELECT 
           a.*,
-          -- Raw date debugging
-          a.tanggal_agenda as raw_tanggal_agenda,
-          a.tanggal_konfirmasi as raw_tanggal_konfirmasi,
-          DATE(a.tanggal_agenda) as date_only_agenda,
-          DATE(a.tanggal_konfirmasi) as date_only_konfirmasi,
-          -- Letter info
           l.no_surat as letter_no_surat,
           l.perihal as letter_perihal,
           l.asal_surat,
           l.jenis as letter_jenis,
           l.uraian,
-          -- Include letter details as JSON
-          JSON_OBJECT(
-            'perihal', l.perihal,
-            'asal_surat', l.asal_surat,
-            'uraian', l.uraian,
-            -- Undangan details
-            'undangan_pukul', lu.pukul,
-            'undangan_tempat', lu.tempat,
-            'jenis_acara', lu.jenis_acara,
-            -- Audiensi details  
-            'audiensi_pukul', la.pukul,
-            'audiensi_tempat', la.tempat,
-            'jumlah_peserta', la.jumlah_peserta,
-            'topik_audiensi', la.topik_audiensi,
-            'nama_pemohon', la.nama_pemohon
-          ) as letter_details
+          -- Format time properly (HH:MM only)
+          CASE 
+            WHEN lu.pukul IS NOT NULL THEN TIME_FORMAT(lu.pukul, '%H:%i')
+            ELSE NULL
+          END as formatted_undangan_pukul,
+          CASE 
+            WHEN la.pukul IS NOT NULL THEN TIME_FORMAT(la.pukul, '%H:%i')
+            ELSE NULL
+          END as formatted_audiensi_pukul,
+          -- Undangan details
+          lu.hari_tanggal_acara as undangan_tanggal_acara,
+          lu.pukul as undangan_pukul_raw,
+          COALESCE(lu.tempat, 'Tempat akan ditentukan') as undangan_tempat,
+          lu.jenis_acara,
+          lu.dress_code,
+          lu.rsvp_required,
+          lu.dokumentasi as undangan_dokumentasi,
+          -- Audiensi details  
+          la.hari_tanggal as audiensi_tanggal,
+          la.pukul as audiensi_pukul_raw,
+          COALESCE(la.tempat, 'Tempat akan ditentukan') as audiensi_tempat,
+          la.nama_pemohon,
+          la.instansi_organisasi,
+          la.jumlah_peserta,
+          la.topik_audiensi,
+          la.dokumentasi as audiensi_dokumentasi
         FROM agenda a
         LEFT JOIN letters l ON a.letter_id = l.id
-        LEFT JOIN letter_undangan lu ON l.id = lu.letter_id
-        LEFT JOIN letter_audiensi la ON l.id = la.letter_id
+        LEFT JOIN letter_undangan lu ON l.id = lu.letter_id AND l.jenis = 'undangan'
+        LEFT JOIN letter_audiensi la ON l.id = la.letter_id AND l.jenis = 'audiensi'
         ${whereClause}
         ORDER BY 
           COALESCE(a.tanggal_agenda, a.tanggal_konfirmasi) DESC,
@@ -69,38 +70,70 @@ const agendaController = {
       `;
 
       console.log("Executing query:", query);
-      console.log("With params:", queryParams);
-
       const [agenda] = await db.execute(query, queryParams);
 
       console.log("Found agenda items:", agenda.length);
       
-      // Enhanced debugging: log each agenda item with detailed date info
-      agenda.forEach((item, index) => {
-        console.log(`=== AGENDA ITEM ${index + 1} ===`);
-        console.log(`ID: ${item.id}`);
-        console.log(`Raw tanggal_agenda:`, item.raw_tanggal_agenda);
-        console.log(`Raw tanggal_konfirmasi:`, item.raw_tanggal_konfirmasi);
-        console.log(`Date only agenda:`, item.date_only_agenda);
-        console.log(`Date only konfirmasi:`, item.date_only_konfirmasi);
-        console.log(`Jenis surat:`, item.jenis_surat);
-        console.log(`Catatan:`, item.catatan_kehadiran);
-        
-        // Show which date would be used for filtering
-        const effectiveDate = item.date_only_agenda || item.date_only_konfirmasi;
-        console.log(`Effective date for filtering:`, effectiveDate);
-        
-        if (date) {
-          console.log(`Date match (${effectiveDate} === ${date}):`, effectiveDate === date);
-        }
-        console.log("================================");
+      // Process agenda items for better display - FIXED to send proper field names
+      const processedAgenda = agenda.map(item => {
+        // Use formatted time if available, otherwise fallback to raw time
+        const displayTime = item.letter_jenis === 'undangan' 
+          ? (item.formatted_undangan_pukul || (item.undangan_pukul_raw ? item.undangan_pukul_raw.slice(0, 5) : null))
+          : (item.formatted_audiensi_pukul || (item.audiensi_pukul_raw ? item.audiensi_pukul_raw.slice(0, 5) : null));
+
+        console.log(`Processing agenda ${item.id}:`, {
+          letter_jenis: item.letter_jenis,
+          formatted_undangan_pukul: item.formatted_undangan_pukul,
+          formatted_audiensi_pukul: item.formatted_audiensi_pukul,
+          final_display_time: displayTime
+        });
+
+        // FIXED: Create letter_details object that frontend expects
+        const letterDetails = {
+          // Add time fields that frontend looks for
+          undangan_pukul: item.formatted_undangan_pukul,
+          audiensi_pukul: item.formatted_audiensi_pukul,
+          pukul: displayTime, // Generic pukul field
+          display_time: displayTime,
+          
+          // Add other details
+          undangan_tempat: item.undangan_tempat,
+          audiensi_tempat: item.audiensi_tempat,
+          tempat: item.letter_jenis === 'undangan' ? item.undangan_tempat : item.audiensi_tempat,
+          
+          // Undangan specific
+          jenis_acara: item.jenis_acara,
+          dress_code: item.dress_code,
+          rsvp_required: item.rsvp_required,
+          undangan_dokumentasi: item.undangan_dokumentasi,
+          
+          // Audiensi specific
+          nama_pemohon: item.nama_pemohon,
+          instansi_organisasi: item.instansi_organisasi,
+          jumlah_peserta: item.jumlah_peserta,
+          topik_audiensi: item.topik_audiensi,
+          audiensi_dokumentasi: item.audiensi_dokumentasi,
+          
+          // Common
+          perihal: item.letter_perihal
+        };
+
+        return {
+          ...item,
+          display_time: displayTime,
+          display_tempat: item.letter_jenis === 'undangan' ? item.undangan_tempat : item.audiensi_tempat,
+          letter_details: JSON.stringify(letterDetails), // Send as JSON string like frontend expects
+          jenis_surat: item.letter_jenis // Make sure this field is available
+        };
       });
+
+      console.log("Processed agenda sample:", processedAgenda[0]);
 
       res.json({
         success: true,
         data: {
-          agenda,
-          total: agenda.length,
+          agenda: processedAgenda,
+          total: processedAgenda.length,
           debug: {
             server_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             server_date: new Date().toISOString(),
@@ -120,10 +153,13 @@ const agendaController = {
     }
   },
 
-  // Get single agenda by ID
+  // Get single agenda by ID - IMPROVED
   async getAgendaById(req, res) {
     try {
       const { id } = req.params;
+
+      console.log("=== GET AGENDA BY ID DEBUG ===");
+      console.log("Requested agenda ID:", id);
 
       const query = `
         SELECT 
@@ -133,39 +169,66 @@ const agendaController = {
           l.asal_surat,
           l.jenis as letter_jenis,
           l.uraian,
-          -- Include letter details
-          JSON_OBJECT(
-            'perihal', l.perihal,
-            'asal_surat', l.asal_surat,
-            'uraian', l.uraian,
-            'undangan_pukul', lu.pukul,
-            'undangan_tempat', lu.tempat,
-            'jenis_acara', lu.jenis_acara,
-            'audiensi_pukul', la.pukul,
-            'audiensi_tempat', la.tempat,
-            'jumlah_peserta', la.jumlah_peserta,
-            'topik_audiensi', la.topik_audiensi,
-            'nama_pemohon', la.nama_pemohon
-          ) as letter_details
+          -- Format time properly (HH:MM only)
+          CASE 
+            WHEN lu.pukul IS NOT NULL THEN TIME_FORMAT(lu.pukul, '%H:%i')
+            ELSE NULL
+          END as formatted_undangan_pukul,
+          CASE 
+            WHEN la.pukul IS NOT NULL THEN TIME_FORMAT(la.pukul, '%H:%i')
+            ELSE NULL
+          END as formatted_audiensi_pukul,
+          -- Undangan fields (explicit with fallbacks)
+          lu.hari_tanggal_acara as undangan_tanggal_acara,
+          lu.pukul as undangan_pukul,
+          COALESCE(lu.tempat, 'Tempat akan ditentukan') as undangan_tempat,
+          lu.jenis_acara,
+          lu.dress_code,
+          lu.rsvp_required,
+          lu.dokumentasi as undangan_dokumentasi,
+          -- Audiensi fields (explicit with fallbacks)
+          la.hari_tanggal as audiensi_tanggal,
+          la.pukul as audiensi_pukul,
+          COALESCE(la.tempat, 'Tempat akan ditentukan') as audiensi_tempat,
+          la.nama_pemohon,
+          la.instansi_organisasi,
+          la.jumlah_peserta,
+          la.topik_audiensi,
+          la.dokumentasi as audiensi_dokumentasi
         FROM agenda a
         LEFT JOIN letters l ON a.letter_id = l.id
-        LEFT JOIN letter_undangan lu ON l.id = lu.letter_id
-        LEFT JOIN letter_audiensi la ON l.id = la.letter_id
+        LEFT JOIN letter_undangan lu ON l.id = lu.letter_id AND l.jenis = 'undangan'
+        LEFT JOIN letter_audiensi la ON l.id = la.letter_id AND l.jenis = 'audiensi'
         WHERE a.id = ?
       `;
 
       const [agenda] = await db.execute(query, [id]);
 
+      console.log("Raw query result:", agenda);
+
       if (agenda.length === 0) {
+        console.log("No agenda found with ID:", id);
         return res.status(404).json({
           success: false,
           message: "Agenda tidak ditemukan",
         });
       }
 
+      const agendaData = agenda[0];
+      
+      // Process the data for better display
+      const processedData = {
+        ...agendaData,
+        // Use formatted time (HH:MM) for display
+        undangan_pukul: agendaData.formatted_undangan_pukul || (agendaData.undangan_pukul ? agendaData.undangan_pukul.slice(0, 5) : null),
+        audiensi_pukul: agendaData.formatted_audiensi_pukul || (agendaData.audiensi_pukul ? agendaData.audiensi_pukul.slice(0, 5) : null)
+      };
+      
+      console.log("Processed agenda data to send:", processedData);
+
       res.json({
         success: true,
-        data: agenda[0],
+        data: processedData,
       });
     } catch (error) {
       console.error("Error fetching agenda:", error);
@@ -177,7 +240,7 @@ const agendaController = {
     }
   },
 
-  // Update attendance status - SUPPORT BOTH DATE COLUMNS
+  // Update attendance status - UNCHANGED
   async updateAttendance(req, res) {
     try {
       const { id } = req.params;
@@ -186,7 +249,6 @@ const agendaController = {
       console.log("Updating attendance for agenda:", id);
       console.log("New status:", status_kehadiran);
 
-      // Update dengan support untuk kedua kolom tanggal
       const query = `
         UPDATE agenda 
         SET status_kehadiran = ?, 
@@ -229,7 +291,7 @@ const agendaController = {
     }
   },
 
-  // Create new agenda manually
+  // Create new agenda manually - IMPROVED
   async createAgenda(req, res) {
     try {
       const {
@@ -247,7 +309,6 @@ const agendaController = {
         created_by = 1,
       } = req.body;
 
-      // Insert dengan support untuk kedua kolom tanggal
       const query = `
         INSERT INTO agenda (
           letter_id, judul, tanggal, tanggal_agenda, tanggal_konfirmasi, pukul, tempat, 
@@ -260,10 +321,10 @@ const agendaController = {
         letter_id,
         judul,
         tanggal,
-        tanggal, // tanggal_agenda (kolom baru)
-        tanggal, // tanggal_konfirmasi (kolom lama, backward compatibility)
+        tanggal,
+        tanggal,
         pukul,
-        tempat,
+        tempat || 'Tempat akan ditentukan',
         deskripsi,
         jenis_agenda,
         peserta,
@@ -281,7 +342,7 @@ const agendaController = {
           judul,
           tanggal,
           pukul,
-          tempat,
+          tempat: tempat || 'Tempat akan ditentukan',
         },
       });
     } catch (error) {
@@ -294,7 +355,7 @@ const agendaController = {
     }
   },
 
-  // Update existing agenda
+  // Update existing agenda - IMPROVED
   async updateAgenda(req, res) {
     try {
       const { id } = req.params;
@@ -311,7 +372,6 @@ const agendaController = {
         catatan_kehadiran,
       } = req.body;
 
-      // Update dengan support untuk kedua kolom tanggal
       const query = `
         UPDATE agenda 
         SET judul = ?, tanggal = ?, tanggal_agenda = ?, tanggal_konfirmasi = ?, 
@@ -324,10 +384,10 @@ const agendaController = {
       const [result] = await db.execute(query, [
         judul,
         tanggal,
-        tanggal, // tanggal_agenda
-        tanggal, // tanggal_konfirmasi
+        tanggal,
+        tanggal,
         pukul,
-        tempat,
+        tempat || 'Tempat akan ditentukan',
         deskripsi,
         jenis_agenda,
         peserta,
@@ -352,7 +412,7 @@ const agendaController = {
           judul,
           tanggal,
           pukul,
-          tempat,
+          tempat: tempat || 'Tempat akan ditentukan',
         },
       });
     } catch (error) {
@@ -365,7 +425,7 @@ const agendaController = {
     }
   },
 
-  // Delete agenda
+  // Delete agenda - UNCHANGED
   async deleteAgenda(req, res) {
     try {
       const { id } = req.params;
@@ -395,7 +455,7 @@ const agendaController = {
     }
   },
 
-  // Get agenda statistics
+  // Get agenda statistics - UNCHANGED
   async getAgendaStats(req, res) {
     try {
       const queries = await Promise.all([

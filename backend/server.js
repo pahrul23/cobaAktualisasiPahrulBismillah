@@ -36,7 +36,8 @@ const usersRoutes = require('./src/routes/users.routes')
 const proposalsRoutes = require('./src/routes/proposals.routes')
 const invitesRoutes = require('./src/routes/invites.routes')
 const agendaRoutes = require('./src/routes/agenda.routes')
-const dispositionsRoutes = require('./src/routes/dispositions.routes')
+// const dispositionsRoutes = require('./src/routes/dispositions.routes')
+const dispositionsRoutes = require('./routes/dispositions.routes')
 
 // NEW: Executive Routes untuk Dashboard Ketua
 const executiveRoutes = require('./src/routes/executive.routes')

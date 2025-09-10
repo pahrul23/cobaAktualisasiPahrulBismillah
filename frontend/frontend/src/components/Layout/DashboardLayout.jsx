@@ -27,8 +27,10 @@ const DashboardLayout = ({ children }) => {
         return 'Manajemen Proposal'
       case '/agenda': 
         return 'Manajemen Agenda'
-      case '/reports': 
-        return 'Laporan'
+      case '/disposisi': 
+        return 'Manajemen Disposisi'
+      case '/notifications': 
+        return 'Notifikasi'
       case '/settings': 
         return 'Pengaturan'
       default: 
@@ -49,7 +51,9 @@ const DashboardLayout = ({ children }) => {
         return ''
       case '/agenda': 
         return ''
-      case '/reports': 
+      case '/disposisi': 
+        return ''
+      case '/notifications': 
         return ''
       case '/settings': 
         return ''
@@ -58,12 +62,14 @@ const DashboardLayout = ({ children }) => {
     }
   }
 
+  // Updated menu items dengan Disposisi dan Notifikasi
   const menuItems = [
     { icon: '🏠', label: 'Dashboard', path: '/dashboard' },
     { icon: '📄', label: 'Surat', path: '/letters' },
     { icon: '📋', label: 'Proposal', path: '/proposals' },
     { icon: '📅', label: 'Agenda', path: '/agenda' },
-    { icon: '📊', label: 'Laporan', path: '/reports' },
+    { icon: '📝', label: 'Disposisi', path: '/disposisi' },
+    { icon: '🔔', label: 'Notifikasi', path: '/notifications' },
     { icon: '⚙️', label: 'Pengaturan', path: '/settings' }
   ]
 
@@ -83,13 +89,18 @@ const DashboardLayout = ({ children }) => {
       background: '#f8fafc'
     }}>
       
-      {/* Sidebar */}
+      {/* Fixed Sidebar */}
       <div style={{
         width: sidebarCollapsed ? '80px' : '260px',
         background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
         transition: 'all 0.3s ease',
-        position: 'relative',
-        boxShadow: '4px 0 20px rgba(14, 165, 233, 0.15)'
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        height: '100vh',
+        zIndex: 1000,
+        boxShadow: '4px 0 20px rgba(14, 165, 233, 0.15)',
+        overflowY: 'auto'
       }}>
         
         {/* Logo */}
@@ -244,10 +255,17 @@ const DashboardLayout = ({ children }) => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      {/* Main Content dengan margin left */}
+      <div style={{ 
+        flex: 1, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        minWidth: 0,
+        marginLeft: sidebarCollapsed ? '80px' : '260px',
+        transition: 'margin-left 0.3s ease'
+      }}>
         
-        {/* Top Header */}
+        {/* Fixed Top Header */}
         <div style={{
           background: 'white',
           padding: '24px 32px',
@@ -255,7 +273,10 @@ const DashboardLayout = ({ children }) => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 999
         }}>
           <div>
             <h1 style={{

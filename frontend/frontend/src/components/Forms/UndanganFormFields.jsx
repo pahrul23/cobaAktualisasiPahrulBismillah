@@ -293,13 +293,14 @@ const UndanganFormFields = ({ formData, setFormData, readOnly = false }) => {
           </div>
         </div>
 
+        {/* UPDATED: Dokumentasi → Disposisi */}
         <div>
-          <label style={labelStyle}>Dokumentasi</label>
+          <label style={labelStyle}>Disposisi</label>
           <textarea 
             value={formData.dokumentasi || ''} 
             onChange={(e) => handleChange('dokumentasi', e.target.value)} 
             style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }} 
-            placeholder="Catatan khusus untuk dokumentasi acara" 
+            placeholder="Catatan disposisi untuk undangan acara" 
             readOnly={readOnly} 
           />
         </div>

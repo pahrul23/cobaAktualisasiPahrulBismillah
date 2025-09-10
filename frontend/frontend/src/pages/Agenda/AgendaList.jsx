@@ -50,11 +50,16 @@ const AgendaList = () => {
           const isUndangan = item.jenis_surat === "undangan";
           const isAudiensi = item.jenis_surat === "audiensi";
 
-          // Default values
-          let time = "09:00";
+          // Default values - REMOVED hardcoded time
+          let time = "-";
           let location = "TBD";
           let participants = 1;
           let title = item.catatan_kehadiran || "Agenda";
+
+          console.log("=== PROCESSING AGENDA ITEM ===");
+          console.log("Item ID:", item.id);
+          console.log("Jenis surat:", item.jenis_surat);
+          console.log("Letter details:", item.letter_details);
 
           // Parse dari catatan_kehadiran
           if (item.catatan_kehadiran) {
@@ -78,6 +83,7 @@ const AgendaList = () => {
             );
             if (timeMatch) {
               time = timeMatch[1].replace(".", ":");
+              console.log("Found time in catatan_kehadiran:", time);
             }
 
             // Extract location
@@ -105,13 +111,25 @@ const AgendaList = () => {
                   ? JSON.parse(item.letter_details)
                   : item.letter_details;
 
+              console.log("Parsed letter details:", letterDetails);
+
               if (isUndangan) {
-                time =
-                  letterDetails.undangan_pukul || letterDetails.pukul || time;
+                // Try different field names for time
+                const undanganTime = letterDetails.undangan_pukul || 
+                                   letterDetails.pukul || 
+                                   letterDetails.formatted_undangan_pukul ||
+                                   letterDetails.display_time;
+                
+                if (undanganTime) {
+                  time = undanganTime;
+                  console.log("Found undangan time:", time);
+                }
+
                 location =
                   letterDetails.undangan_tempat ||
                   letterDetails.tempat ||
                   location;
+                
                 if (letterDetails.perihal) {
                   title = `Undangan: ${letterDetails.perihal}`;
                 }
@@ -119,13 +137,24 @@ const AgendaList = () => {
                   title += ` - ${letterDetails.jenis_acara}`;
                 }
               } else if (isAudiensi) {
-                time =
-                  letterDetails.audiensi_pukul || letterDetails.pukul || time;
+                // Try different field names for time
+                const audiensiTime = letterDetails.audiensi_pukul || 
+                                   letterDetails.pukul || 
+                                   letterDetails.formatted_audiensi_pukul ||
+                                   letterDetails.display_time;
+                
+                if (audiensiTime) {
+                  time = audiensiTime;
+                  console.log("Found audiensi time:", time);
+                }
+
                 location =
                   letterDetails.audiensi_tempat ||
                   letterDetails.tempat ||
                   location;
+                
                 participants = letterDetails.jumlah_peserta || participants;
+                
                 if (letterDetails.perihal) {
                   title = `Audiensi: ${letterDetails.perihal}`;
                 }
@@ -138,11 +167,29 @@ const AgendaList = () => {
             }
           }
 
+          // Final time validation and formatting
+          if (time && time !== "-") {
+            // Ensure time is in HH:MM format
+            if (time.includes(':')) {
+              const parts = time.split(':');
+              if (parts.length >= 2) {
+                time = `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+              }
+            } else if (!isNaN(time)) {
+              // If it's just a number, format as hour
+              const hour = parseInt(time);
+              time = `${hour.toString().padStart(2, '0')}:00`;
+            }
+          }
+
+          console.log("Final processed time:", time);
+          console.log("================================");
+
           return {
             id: item.id,
             title: title,
             time: time,
-            duration: "1 jam",
+            // REMOVED duration field completely
             location: location,
             participants: participants,
             type: item.jenis_surat || "rapat",
@@ -151,7 +198,7 @@ const AgendaList = () => {
             no_surat: item.letter_no_surat || null,
             letter_id: item.letter_id,
             // Untuk sorting berdasarkan jam
-            timeSort: time.replace(":", ""), // "09:00" -> "0900"
+            timeSort: time === "-" ? "9999" : time.replace(":", ""), // "-" goes to end
           };
         })
         // Sort berdasarkan jam (terkecil ke terbesar)
@@ -589,29 +636,19 @@ const AgendaList = () => {
                           alignItems: "center",
                         }}
                       >
-                        {/* Time */}
+                        {/* Time - UPDATED to show actual time from database */}
                         <div style={{ textAlign: "center" }}>
                           <div
                             style={{
                               fontSize: "18px",
                               fontWeight: "700",
-                              color: "#1a202c",
+                              color: item.time === "-" ? "#94a3b8" : "#1a202c",
                               marginBottom: "4px",
                             }}
                           >
                             {item.time}
                           </div>
-                          <div
-                            style={{
-                              fontSize: "12px",
-                              color: "#64748b",
-                              background: "#e2e8f0",
-                              padding: "4px 8px",
-                              borderRadius: "6px",
-                            }}
-                          >
-                            {item.duration}
-                          </div>
+                          {/* REMOVED duration display completely */}
                         </div>
 
                         {/* Content */}
