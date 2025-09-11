@@ -1,4 +1,3 @@
-// Path: /frontend/src/pages/LandingPage.jsx - Modern Fintech Style
 import React from 'react'
 
 const LandingPage = () => {
@@ -35,7 +34,7 @@ const LandingPage = () => {
           <div style={{
             width: '40px',
             height: '40px',
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+            background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
             borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
@@ -49,7 +48,7 @@ const LandingPage = () => {
           <div>
             <h2 style={{
               margin: 0,
-              color: '#1e293b',
+              color: '#0f172a',
               fontSize: '1.25rem',
               fontWeight: '700',
               letterSpacing: '-0.025em'
@@ -65,66 +64,22 @@ const LandingPage = () => {
           alignItems: 'center',
           gap: '2rem'
         }}>
-          <nav style={{ display: 'flex', gap: '2rem' }}>
-            {['How It Works', 'Features', 'About', 'Help'].map((item) => (
-              <a
-                key={item}
-                href="#"
-                style={{
-                  color: '#64748b',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  transition: 'all 0.2s ease',
-                  padding: '0.5rem 0'
-                }}
-                onMouseOver={(e) => e.target.style.color = '#1e293b'}
-                onMouseOut={(e) => e.target.style.color = '#64748b'}
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
-
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <button style={{
-              background: 'transparent',
-              border: '1px solid #e2e8f0',
-              color: '#64748b',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}>
-              Sign In
-            </button>
-            
-            <button
+            <button 
               onClick={handleLoginClick}
               style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-                border: 'none',
-                color: 'white',
+                background: 'transparent',
+                border: '1px solid #e2e8f0',
+                color: '#64748b',
                 padding: '0.75rem 1.5rem',
                 borderRadius: '8px',
                 fontSize: '0.875rem',
-                fontWeight: '600',
+                fontWeight: '500',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
-              }}
-              onMouseOver={(e) => {
-                e.target.style.transform = 'translateY(-1px)'
-                e.target.style.boxShadow = '0 6px 20px rgba(139, 92, 246, 0.4)'
-              }}
-              onMouseOut={(e) => {
-                e.target.style.transform = 'translateY(0)'
-                e.target.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)'
+                transition: 'all 0.3s ease'
               }}
             >
-              Sign Up
+              Sign In
             </button>
           </div>
         </div>
@@ -148,15 +103,15 @@ const LandingPage = () => {
           
           {/* Badge */}
           <div style={{
-            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)',
-            border: '1px solid rgba(139, 92, 246, 0.2)',
+            background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%)',
+            border: '1px solid rgba(14, 165, 233, 0.2)',
             borderRadius: '20px',
             padding: '0.5rem 1rem',
             display: 'inline-block',
             marginBottom: '2rem'
           }}>
             <span style={{
-              color: '#7c3aed',
+              color: '#0ea5e9',
               fontSize: '0.875rem',
               fontWeight: '600'
             }}>
@@ -167,7 +122,7 @@ const LandingPage = () => {
           <h1 style={{
             fontSize: '4rem',
             fontWeight: '800',
-            color: '#1e293b',
+            color: '#0f172a',
             margin: '0 0 1.5rem 0',
             lineHeight: '1.1',
             letterSpacing: '-0.025em'
@@ -175,14 +130,14 @@ const LandingPage = () => {
             Digitalisasi Sistem
             <br />
             <span style={{
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
             }}>
-              Persuratan DPD RI
+              Persuratan Sekretariat Ketua DPD RI
             </span>
-          </h1>
+          </h1>x
 
           <p style={{
             fontSize: '1.25rem',
@@ -196,48 +151,6 @@ const LandingPage = () => {
             Solusi inovatif untuk mengelola surat, proposal, dan agenda secara digital di Sekretariat Ketua DPD RI.
           </p>
 
-          {/* Feature Points */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-            marginBottom: '2.5rem'
-          }}>
-            {[
-              'Proses persetujuan proposal yang efisien',
-              'Manajemen surat masuk otomatis',
-              'Dashboard analytics real-time'
-            ].map((feature, index) => (
-              <div key={index} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem'
-              }}>
-                <div style={{
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#10b981',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.75rem',
-                  color: 'white',
-                  fontWeight: '700'
-                }}>
-                  ✓
-                </div>
-                <span style={{
-                  color: '#374151',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}>
-                  {feature}
-                </span>
-              </div>
-            ))}
-          </div>
-
           {/* CTA Buttons */}
           <div style={{
             display: 'flex',
@@ -247,7 +160,7 @@ const LandingPage = () => {
             <button
               onClick={handleLoginClick}
               style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
                 color: 'white',
                 border: 'none',
                 padding: '1rem 2rem',
@@ -256,15 +169,15 @@ const LandingPage = () => {
                 fontWeight: '600',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
+                boxShadow: '0 4px 15px rgba(14, 165, 233, 0.3)'
               }}
               onMouseOver={(e) => {
                 e.target.style.transform = 'translateY(-2px)'
-                e.target.style.boxShadow = '0 6px 20px rgba(139, 92, 246, 0.4)'
+                e.target.style.boxShadow = '0 6px 20px rgba(14, 165, 233, 0.4)'
               }}
               onMouseOut={(e) => {
                 e.target.style.transform = 'translateY(0)'
-                e.target.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)'
+                e.target.style.boxShadow = '0 4px 15px rgba(14, 165, 233, 0.3)'
               }}
             >
               Akses Sistem
@@ -287,7 +200,7 @@ const LandingPage = () => {
               <div style={{
                 width: '16px',
                 height: '16px',
-                backgroundColor: '#8b5cf6',
+                backgroundColor: '#0ea5e9',
                 borderRadius: '50%',
                 position: 'relative'
               }}>
@@ -304,35 +217,37 @@ const LandingPage = () => {
                   marginLeft: '1px'
                 }}></div>
               </div>
-              See How It Works
+              {/* See How It Works */}
             </button>
           </div>
         </div>
 
-        {/* Right Illustration */}
+        {/* Right Illustration - ENLARGED */}
         <div style={{
-          flex: '1',
+          flex: '1.3',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          position: 'relative'
+          position: 'relative',
+          padding: '0 2rem'
         }}>
           
-          {/* Main Card */}
+          {/* Main Card - BIGGER */}
           <div style={{
             position: 'relative',
-            zIndex: 2
+            zIndex: 2,
+            transform: 'scale(1.3)'
           }}>
             <div style={{
-              width: '350px',
-              height: '220px',
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-              borderRadius: '20px',
-              padding: '2rem',
+              width: '420px',
+              height: '280px',
+              background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
+              borderRadius: '24px',
+              padding: '2.5rem',
               color: 'white',
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: '0 20px 40px rgba(139, 92, 246, 0.3)'
+              boxShadow: '0 25px 50px rgba(14, 165, 233, 0.4)'
             }}>
               
               {/* Card Content */}
@@ -341,15 +256,15 @@ const LandingPage = () => {
                 zIndex: 2
               }}>
                 <h3 style={{
-                  margin: '0 0 0.5rem 0',
-                  fontSize: '1.5rem',
-                  fontWeight: '700'
+                  margin: '0 0 0.75rem 0',
+                  fontSize: '2rem',
+                  fontWeight: '800'
                 }}>
                   ADMIRE System
                 </h3>
                 <p style={{
-                  margin: '0 0 2rem 0',
-                  fontSize: '0.875rem',
+                  margin: '0 0 2.5rem 0',
+                  fontSize: '1rem',
                   opacity: 0.9
                 }}>
                   Sekretariat Ketua DPD RI
@@ -362,76 +277,76 @@ const LandingPage = () => {
                 }}>
                   <div>
                     <p style={{
-                      margin: '0 0 0.25rem 0',
-                      fontSize: '0.75rem',
+                      margin: '0 0 0.5rem 0',
+                      fontSize: '0.875rem',
                       opacity: 0.8
                     }}>
                       Active Users
                     </p>
                     <p style={{
                       margin: 0,
-                      fontSize: '1.25rem',
-                      fontWeight: '700'
+                      fontSize: '1.75rem',
+                      fontWeight: '800'
                     }}>
                       250+
                     </p>
                   </div>
                   
                   <div style={{
-                    width: '40px',
-                    height: '40px',
+                    width: '50px',
+                    height: '50px',
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    borderRadius: '8px',
+                    borderRadius: '12px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1.25rem'
+                    fontSize: '1.5rem'
                   }}>
                     🏛️
                   </div>
                 </div>
               </div>
 
-              {/* Decorative Elements */}
+              {/* Decorative Elements - BIGGER */}
               <div style={{
                 position: 'absolute',
-                top: '-20px',
-                right: '-20px',
-                width: '100px',
-                height: '100px',
+                top: '-30px',
+                right: '-30px',
+                width: '150px',
+                height: '150px',
                 background: 'rgba(255, 255, 255, 0.1)',
                 borderRadius: '50%'
               }}></div>
               
               <div style={{
                 position: 'absolute',
-                bottom: '-30px',
-                left: '-30px',
-                width: '80px',
-                height: '80px',
+                bottom: '-40px',
+                left: '-40px',
+                width: '120px',
+                height: '120px',
                 background: 'rgba(255, 255, 255, 0.05)',
                 borderRadius: '50%'
               }}></div>
             </div>
           </div>
 
-          {/* Floating Elements */}
+          {/* Floating Elements - BIGGER */}
           <div style={{
             position: 'absolute',
-            top: '20%',
-            left: '10%',
+            top: '15%',
+            left: '5%',
             zIndex: 1
           }}>
             <div style={{
-              width: '60px',
-              height: '60px',
+              width: '80px',
+              height: '80px',
               backgroundColor: 'white',
-              borderRadius: '12px',
+              borderRadius: '16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
-              fontSize: '1.5rem',
+              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.15)',
+              fontSize: '2rem',
               animation: 'float 3s ease-in-out infinite'
             }}>
               📄
@@ -440,20 +355,20 @@ const LandingPage = () => {
 
           <div style={{
             position: 'absolute',
-            bottom: '20%',
-            right: '10%',
+            bottom: '15%',
+            right: '5%',
             zIndex: 1
           }}>
             <div style={{
-              width: '50px',
-              height: '50px',
+              width: '70px',
+              height: '70px',
               backgroundColor: 'white',
-              borderRadius: '10px',
+              borderRadius: '14px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
-              fontSize: '1.25rem',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+              fontSize: '1.75rem',
               animation: 'float 3s ease-in-out infinite 1s'
             }}>
               ✅
@@ -463,19 +378,19 @@ const LandingPage = () => {
           <div style={{
             position: 'absolute',
             top: '50%',
-            right: '5%',
+            right: '0%',
             zIndex: 1
           }}>
             <div style={{
-              width: '45px',
-              height: '45px',
+              width: '65px',
+              height: '65px',
               backgroundColor: 'white',
-              borderRadius: '8px',
+              borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-              fontSize: '1.125rem',
+              boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)',
+              fontSize: '1.5rem',
               animation: 'float 3s ease-in-out infinite 2s'
             }}>
               📊
@@ -484,40 +399,114 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Why Choose Us Section */}
+      {/* Why Choose Us Section - REDESIGNED WITH GRADIENT BACKGROUND */}
       <div style={{
-        padding: '4rem',
-        backgroundColor: 'white'
+        padding: '6rem 4rem',
+        background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
+        {/* Floating Decorative Shapes */}
+        <div style={{
+          position: 'absolute',
+          top: '10%',
+          left: '5%',
+          width: '100px',
+          height: '100px',
+          background: 'rgba(255, 255, 255, 0.1)',
+          borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
+          animation: 'float 6s ease-in-out infinite'
+        }}></div>
+        
+        <div style={{
+          position: 'absolute',
+          top: '60%',
+          right: '10%',
+          width: '80px',
+          height: '80px',
+          background: 'rgba(255, 255, 255, 0.08)',
+          borderRadius: '50%',
+          animation: 'float 4s ease-in-out infinite 2s'
+        }}></div>
+        
+        <div style={{
+          position: 'absolute',
+          bottom: '20%',
+          left: '15%',
+          width: '60px',
+          height: '60px',
+          background: 'rgba(255, 255, 255, 0.06)',
+          borderRadius: '20px',
+          transform: 'rotate(45deg)',
+          animation: 'float 5s ease-in-out infinite 1s'
+        }}></div>
+        
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          textAlign: 'center'
+          position: 'relative',
+          zIndex: 2
         }}>
-          <h2 style={{
-            fontSize: '2.5rem',
-            fontWeight: '700',
-            color: '#1e293b',
-            marginBottom: '1rem',
-            letterSpacing: '-0.025em'
+          {/* Header Section */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '4rem'
           }}>
-            Mengapa Memilih ADMIRE?
-          </h2>
-          
-          <p style={{
-            fontSize: '1.125rem',
-            color: '#64748b',
-            marginBottom: '4rem',
-            maxWidth: '600px',
-            margin: '0 auto 4rem'
-          }}>
-            Sistem terintegrasi yang dirancang khusus untuk efisiensi operasional Sekretariat Ketua DPD RI
-          </p>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '30px',
+              padding: '0.75rem 2rem',
+              display: 'inline-block',
+              marginBottom: '2rem'
+            }}>
+              <span style={{
+                color: 'white',
+                fontSize: '0.875rem',
+                fontWeight: '600'
+              }}>
+                ✨ Keunggulan Sistem
+              </span>
+            </div>
+            
+            <h2 style={{
+              fontSize: '3.5rem',
+              fontWeight: '800',
+              color: 'white',
+              marginBottom: '1.5rem',
+              letterSpacing: '-0.025em',
+              lineHeight: '1.1',
+              textShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+            }}>
+              Mengapa Memilih
+              <br />
+              <span style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                ADMIRE?
+              </span>
+            </h2>
+            
+            <p style={{
+              fontSize: '1.25rem',
+              color: 'rgba(255, 255, 255, 0.9)',
+              maxWidth: '700px',
+              margin: '0 auto',
+              lineHeight: '1.6'
+            }}>
+              Sistem terintegrasi yang dirancang khusus untuk efisiensi operasional Sekretariat Ketua DPD RI
+            </p>
+          </div>
 
+          {/* Features Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '3rem'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+            gap: '2rem'
           }}>
             {[
               {
@@ -537,34 +526,70 @@ const LandingPage = () => {
               }
             ].map((feature, index) => (
               <div key={index} style={{
-                textAlign: 'center',
-                padding: '2rem 1rem'
-              }}>
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '24px',
+                padding: '3rem 2.5rem',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                transition: 'all 0.4s ease',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-10px)'
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)'
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
+              }}
+              >
+                {/* Shine Effect */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-50%',
+                  left: '-50%',
+                  width: '200%',
+                  height: '200%',
+                  background: 'linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%)',
+                  transform: 'rotate(45deg)',
+                  transition: 'all 0.6s ease'
+                }}></div>
+                
+                {/* Icon */}
                 <div style={{
                   width: '80px',
                   height: '80px',
-                  backgroundColor: `${index === 0 ? '#fef3c7' : index === 1 ? '#dbeafe' : '#dcfce7'}`,
+                  background: 'rgba(255, 255, 255, 0.2)',
                   borderRadius: '20px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  margin: '0 auto 1.5rem',
-                  fontSize: '2rem'
+                  fontSize: '2.5rem',
+                  marginBottom: '2rem',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)'
                 }}>
                   {feature.icon}
                 </div>
+                
                 <h3 style={{
-                  fontSize: '1.25rem',
-                  fontWeight: '600',
-                  color: '#1e293b',
-                  marginBottom: '1rem'
+                  fontSize: '1.75rem',
+                  fontWeight: '700',
+                  color: 'white',
+                  marginBottom: '1rem',
+                  letterSpacing: '-0.025em'
                 }}>
                   {feature.title}
                 </h3>
+                
                 <p style={{
-                  fontSize: '0.875rem',
-                  color: '#64748b',
-                  lineHeight: '1.6'
+                  fontSize: '1rem',
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  lineHeight: '1.6',
+                  margin: 0
                 }}>
                   {feature.description}
                 </p>
@@ -574,210 +599,100 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Organization Structure Section */}
+      {/* CTA Section - CHANGED TO GRAY BACKGROUND */}
       <div style={{
-        padding: '4rem',
-        backgroundColor: '#f8fafc'
+        padding: '5rem 4rem',
+        background: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 50%, #94a3b8 100%)',
+        color: '#0f172a',
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
+        {/* Background Pattern */}
         <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          textAlign: 'center'
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          right: '0',
+          bottom: '0',
+          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+                           radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)`,
+          zIndex: 1
+        }}></div>
+        
+        <div style={{
+          position: 'relative',
+          zIndex: 2,
+          maxWidth: '800px',
+          margin: '0 auto'
         }}>
           <h2 style={{
-            fontSize: '2.5rem',
-            fontWeight: '700',
-            color: '#1e293b',
-            marginBottom: '1rem'
+            fontSize: '3rem',
+            fontWeight: '800',
+            marginBottom: '1rem',
+            letterSpacing: '-0.025em',
+            color: '#0f172a'
           }}>
-            Struktur Organisasi
+            Siap Menggunakan ADMIRE?
           </h2>
           <p style={{
-            fontSize: '1.125rem',
+            fontSize: '1.25rem',
+            marginBottom: '2.5rem',
             color: '#64748b',
-            marginBottom: '3rem'
+            lineHeight: '1.6'
           }}>
-            Sekretariat Ketua DPD RI
+            Bergabunglah dengan digitalisasi terdepan DPD RI dan rasakan efisiensi yang sesungguhnya
           </p>
-
-          {/* Ketua */}
-          <div style={{
-            marginBottom: '3rem'
-          }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+          <button
+            onClick={handleLoginClick}
+            style={{
+              background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
               color: 'white',
-              padding: '2rem',
-              borderRadius: '16px',
-              display: 'inline-block',
-              minWidth: '300px'
-            }}>
-              <div style={{
-                fontSize: '2rem',
-                marginBottom: '1rem'
-              }}>👑</div>
-              <h3 style={{
-                margin: '0 0 0.5rem 0',
-                fontSize: '1.25rem',
-                fontWeight: '700'
-              }}>
-                Ketua DPD RI
-              </h3>
-            </div>
-          </div>
-
-          {/* Sub Structure */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '2rem',
-            marginBottom: '3rem'
-          }}>
-            <div style={{
-              background: 'white',
-              padding: '2rem',
-              borderRadius: '16px',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)'
-            }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>📄</div>
-              <h4 style={{
-                margin: '0 0 0.5rem 0',
-                fontSize: '1.125rem',
-                fontWeight: '600',
-                color: '#1e293b'
-              }}>
-                Sub Bagian Materi
-              </h4>
-              <p style={{
-                margin: 0,
-                fontSize: '0.875rem',
-                color: '#64748b'
-              }}>
-                Sekretariat Ketua DPD RI
-              </p>
-            </div>
-
-            <div style={{
-              background: 'white',
-              padding: '2rem',
-              borderRadius: '16px',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)'
-            }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>🏠</div>
-              <h4 style={{
-                margin: '0 0 0.5rem 0',
-                fontSize: '1.125rem',
-                fontWeight: '600',
-                color: '#1e293b'
-              }}>
-                Sub Bagian Tata Usaha
-              </h4>
-              <p style={{
-                margin: 0,
-                fontSize: '0.875rem',
-                color: '#64748b'
-              }}>
-                Sekretariat Ketua DPD RI
-              </p>
-            </div>
-          </div>
-
-          {/* Staff Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: '1rem'
-          }}>
-            {Array.from({ length: 10 }, (_, i) => (
-              <div key={i} style={{
-                background: 'white',
-                padding: '1.5rem 1rem',
-                borderRadius: '12px',
-                textAlign: 'center',
-                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)'
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.05)'
-              }}
-              >
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  backgroundColor: '#f1f5f9',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 1rem',
-                  fontSize: '1rem'
-                }}>
-                  👤
-                </div>
-                <h5 style={{
-                  margin: '0 0 0.25rem 0',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: '#1e293b'
-                }}>
-                  Staf {i + 1}
-                </h5>
-                <p style={{
-                  margin: 0,
-                  fontSize: '0.75rem',
-                  color: '#64748b'
-                }}>
-                  Sekretariat
-                </p>
-              </div>
-            ))}
-          </div>
+              border: 'none',
+              padding: '1.25rem 2.5rem',
+              borderRadius: '12px',
+              fontSize: '1.125rem',
+              fontWeight: '700',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 20px rgba(14, 165, 233, 0.3)'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.transform = 'translateY(-2px)'
+              e.target.style.boxShadow = '0 8px 25px rgba(14, 165, 233, 0.4)'
+            }}
+            onMouseOut={(e) => {
+              e.target.style.transform = 'translateY(0)'
+              e.target.style.boxShadow = '0 4px 20px rgba(14, 165, 233, 0.3)'
+            }}
+          >
+            Mulai Sekarang →
+          </button>
         </div>
       </div>
 
-      {/* CTA Section */}
-      <div style={{
-        padding: '4rem',
-        background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-        color: 'white',
-        textAlign: 'center'
+      {/* Footer - Developer Credits */}
+      <footer style={{
+        padding: '3rem 4rem 2rem',
+        backgroundColor: '#0f172a',
+        color: '#64748b',
+        textAlign: 'center',
+        borderTop: '1px solid #1e293b'
       }}>
-        <h2 style={{
-          fontSize: '2.5rem',
-          fontWeight: '700',
-          marginBottom: '1rem'
+        <div style={{
+          maxWidth: '800px',
+          margin: '0 auto'
         }}>
-          Siap Menggunakan ADMIRE?
-        </h2>
-        <p style={{
-          fontSize: '1.25rem',
-          marginBottom: '2rem',
-          opacity: 0.9
-        }}>
-          Bergabunglah dengan digitalisasi terdepan DPD RI
-        </p>
-        <button
-          onClick={handleLoginClick}
-          style={{
-            background: 'white',
-            color: '#7c3aed',
-            border: 'none',
-            padding: '1rem 2rem',
-            borderRadius: '12px',
-            fontSize: '1rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          Mulai Sekarang →
-        </button>
-      </div>
+          <p style={{
+            fontSize: '0.875rem',
+            lineHeight: '1.6',
+            margin: 0,
+            color: '#94a3b8'
+          }}>
+            Dikembangkan oleh <strong style={{ color: '#e2e8f0' }}>Pahrul</strong> CPNS Penata Kelola Sistem dan Teknologi Informasi dan Bagian Pengelolaan Sistem Informasi Biro Sindok Setjen <strong style={{ color: '#0ea5e9' }}>DPD RI</strong>
+          </p>
+        </div>
+      </footer>
 
       <style>{`
         @keyframes float {
