@@ -1,4 +1,4 @@
-// Path: /frontend/src/components/Layout/DashboardLayout.jsx
+// STAF
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import useAuth from '../../hooks/useAuth'
@@ -131,13 +131,13 @@ const DashboardLayout = ({ children }) => {
                 fontSize: '20px', 
                 fontWeight: '700'
               }}>
-                RI7 System
+                RI7 ADMIRE
               </div>
               <div style={{ 
                 color: 'rgba(255,255,255,0.8)', 
                 fontSize: '13px'
               }}>
-                DPD RI
+                SET KETUA DPD RI
               </div>
             </div>
           )}

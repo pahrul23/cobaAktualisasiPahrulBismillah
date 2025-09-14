@@ -1258,6 +1258,51 @@ const lettersController = {
       });
     }
   },
+
+  // Get stats by type untuk dashboard
+  async getStatsByType(req, res) {
+    try {
+      const query = `
+        SELECT 
+          jenis,
+          COUNT(*) as count
+        FROM letters 
+        WHERE YEAR(created_at) = 2025 
+        GROUP BY jenis 
+        ORDER BY jenis
+      `;
+
+      const [results] = await db.execute(query);
+
+      // Pastikan semua jenis surat ada
+      const allJenis = [
+        "pengaduan",
+        "pemberitahuan",
+        "audiensi",
+        "undangan",
+        "proposal",
+      ];
+      const completeData = allJenis.map((jenis) => {
+        const found = results.find((row) => row.jenis === jenis);
+        return {
+          jenis: jenis,
+          count: found ? parseInt(found.count) : 0,
+          monthlyData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        };
+      });
+
+      res.json({
+        success: true,
+        data: completeData,
+      });
+    } catch (error) {
+      console.error("Error fetching stats by type:", error);
+      res.json({
+        success: false,
+        data: [],
+      });
+    }
+  },
 };
 
 module.exports = lettersController;

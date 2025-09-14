@@ -42,7 +42,7 @@ const getAllDispositions = async (req, res) => {
     
     const [rows] = await db.query(query, queryParams);
     
-    console.log("Fetched dispositions count:", rows.length);
+    // console.log("Fetched dispositions count:", rows.length);
     
     res.json({
       success: true,

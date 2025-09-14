@@ -5,10 +5,10 @@ import DisposisiButton from './DisposisiButton'
 const LetterCard = ({ letter, onUpdate }) => {
   const navigate = useNavigate()
 
-  // 🔍 Debug render state
-  console.log('LetterCard render:', { 
-    letterId: letter.id
-  })
+  // // 🔍 Debug render state
+  // console.log('LetterCard render:', { 
+  //   letterId: letter.id
+  // })
 
   // Handler tombol Detail - GANTI: navigate instead of modal
   const handleViewClick = () => {

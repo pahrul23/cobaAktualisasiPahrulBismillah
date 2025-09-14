@@ -19,7 +19,7 @@ const Login = () => {
     // Redirect if already logged in - SMART REDIRECT
     if (isAuthenticated && user) {
       if (user.role === 'ketua' || user.role === 'admin') {
-        navigate('/dashboard') // Will show KetuaDashboard
+        navigate('/dashboardKetua') // Updated redirect untuk ketua
       } else {
         navigate('/dashboard') // Will show StafDashboard
       }
@@ -49,10 +49,10 @@ const Login = () => {
         // Use the login function from useAuth
         login(userData, data.data.token)
         
-        // SMART REDIRECT based on role
+        // SMART REDIRECT based on role - UPDATED
         setTimeout(() => {
           if (userData.role === 'ketua' || userData.role === 'admin') {
-            navigate('/executive') // KetuaDashboard
+            navigate('/dashboardKetua') // Updated redirect untuk ketua
           } else {
             navigate('/dashboard') // StafDashboard
           }

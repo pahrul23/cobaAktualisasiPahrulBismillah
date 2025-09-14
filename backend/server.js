@@ -14,7 +14,6 @@ console.log('==========================================')
 const express = require('express')
 const cors = require('cors')
 const path = require('path')
-
 const app = express()
 const PORT = process.env.PORT || 4000
 
@@ -36,11 +35,16 @@ const usersRoutes = require('./src/routes/users.routes')
 const proposalsRoutes = require('./src/routes/proposals.routes')
 const invitesRoutes = require('./src/routes/invites.routes')
 const agendaRoutes = require('./src/routes/agenda.routes')
-// const dispositionsRoutes = require('./src/routes/dispositions.routes')
 const dispositionsRoutes = require('./routes/dispositions.routes')
 
 // NEW: Executive Routes untuk Dashboard Ketua
 const executiveRoutes = require('./src/routes/executive.routes')
+
+// NEW: Approval Routes untuk Approval Center Ketua 
+const approvalRoutes = require('./routes/approval.routes')
+
+// NEW: Notifications Routes untuk Notifikasi Staf
+const notificationsRoutes = require('./routes/notifications.routes')
 
 // API Routes - Existing
 app.use('/api/auth', authRoutes)
@@ -53,6 +57,12 @@ app.use('/api/dispositions', dispositionsRoutes)
 
 // NEW: Executive API Routes
 app.use('/api/executive', executiveRoutes)
+
+// NEW: Approval API Routes
+app.use('/api/approval', approvalRoutes)
+
+// NEW: Notifications API Routes
+app.use('/api/notifications', notificationsRoutes)
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -67,7 +77,9 @@ app.get('/api/health', (req, res) => {
       db_name: process.env.DB_NAME || 'NOT_SET',
       node_env: process.env.NODE_ENV || 'development'
     },
-    executive_dashboard: 'Active'
+    executive_dashboard: 'Active',
+    approval_center: 'Active',
+    notifications: 'Active'
   })
 })
 
@@ -89,7 +101,9 @@ app.get('/api', (req, res) => {
       invites: '/api/invites',
       agenda: '/api/agenda',
       dispositions: '/api/dispositions',
-      executive: '/api/executive'
+      executive: '/api/executive',
+      approval: '/api/approval',
+      notifications: '/api/notifications'
     },
     executive_features: {
       dashboard: '/api/executive/surat-summary',
@@ -97,6 +111,20 @@ app.get('/api', (req, res) => {
       attendance: '/api/executive/undangan',
       notifications: '/api/executive/notifications',
       health: '/api/executive/health'
+    },
+    approval_features: {
+      dashboard: '/api/approval/all',
+      undangan: '/api/approval/undangan',
+      audiensi: '/api/approval/audiensi',
+      attendance: '/api/approval/agenda/:letterId',
+      statistics: '/api/approval/stats',
+      health: '/api/approval/health'
+    },
+    notification_features: {
+      staff: '/api/notifications/staff',
+      markRead: '/api/notifications/:id/read',
+      markAllRead: '/api/notifications/mark-all-read',
+      statistics: '/api/notifications/stats'
     },
     features: {
       fileUpload: 'Supported (max 10MB)',
@@ -109,7 +137,6 @@ app.get('/api', (req, res) => {
 // Serve static files from React app (production)
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/build')))
-  
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/build/index.html'))
   })
@@ -120,14 +147,20 @@ app.use('/api/*', (req, res) => {
   res.status(404).json({
     success: false,
     message: 'API endpoint not found',
-    path: req.path
+    path: req.path,
+    availableEndpoints: [
+      '/api/auth', '/api/letters', '/api/users', 
+      '/api/proposals', '/api/invites', '/api/agenda', 
+      '/api/dispositions', '/api/executive', '/api/approval',
+      '/api/notifications'
+    ]
   })
 })
 
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('Global Error:', err.stack)
-
+  
   // Multer file upload errors
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(400).json({
@@ -136,7 +169,7 @@ app.use((err, req, res, next) => {
       error: 'FILE_TOO_LARGE'
     })
   }
-
+  
   if (err.code === 'LIMIT_UNEXPECTED_FILE') {
     return res.status(400).json({
       success: false,
@@ -144,7 +177,7 @@ app.use((err, req, res, next) => {
       error: 'INVALID_FILE_FIELD'
     })
   }
-
+  
   // Database connection errors
   if (err.code === 'ER_ACCESS_DENIED_ERROR') {
     return res.status(500).json({
@@ -153,7 +186,7 @@ app.use((err, req, res, next) => {
       error: 'DB_ACCESS_DENIED'
     })
   }
-
+  
   if (err.code === 'ECONNREFUSED') {
     return res.status(500).json({
       success: false,
@@ -161,7 +194,7 @@ app.use((err, req, res, next) => {
       error: 'DB_CONNECTION_REFUSED'
     })
   }
-
+  
   // Generic error response
   res.status(err.status || 500).json({
     success: false,
@@ -180,12 +213,11 @@ app.listen(PORT, () => {
   // Environment status
   const jwtStatus = process.env.JWT_SECRET ? '✅ LOADED' : '❌ MISSING'
   const expiresStatus = process.env.JWT_EXPIRES_IN || '❌ NOT SET'
-  
   console.log(`🔐 JWT Secret: ${jwtStatus}`)
   console.log(`⏰ JWT Expires: ${expiresStatus}`)
   
   if (!process.env.JWT_SECRET || !process.env.JWT_EXPIRES_IN) {
-    console.log('\n⚠️  WARNING: Environment variables not loaded!')
+    console.log('\n⚠️ WARNING: Environment variables not loaded!')
     console.log('   Check if .env file exists and has correct format')
     console.log('   Expected location: /backend/.env')
   }
@@ -195,5 +227,16 @@ app.listen(PORT, () => {
   console.log(`   - GET  /api/health`)
   console.log(`   - GET  /api/executive/notifications`)
   console.log(`   - GET  /api/letters`)
+  console.log(`   - GET  /api/approval/all`)
+  console.log(`   - GET  /api/approval/undangan`) 
+  console.log(`   - GET  /api/approval/audiensi`)
+  console.log(`   - PUT  /api/approval/agenda/:letterId`)
+  console.log(`   - GET  /api/approval/stats`)
+  console.log(`   - GET  /api/approval/health`)
+  console.log(`   - GET  /api/notifications/staff`)
+  console.log(`   - PUT  /api/notifications/:id/read`)
+  console.log(`   - PUT  /api/notifications/mark-all-read`)
+  console.log(`   - GET  /api/notifications/stats`)
+  
   console.log(`\n✨ Ready to handle requests!\n`)
 })
