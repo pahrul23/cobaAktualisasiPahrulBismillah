@@ -9,7 +9,7 @@ const ApprovalUndangan = () => {
   const colors = {
     primary: {
       skyBlue: '#0ea5e9',
-      teal: '#06b6d4', 
+      teal: '#06b6d4',
       emerald: '#10b981'
     },
     gradients: {
@@ -42,9 +42,7 @@ const ApprovalUndangan = () => {
   const loadUndanganData = async () => {
     try {
       setLoading(true);
-      
-      // API call yang benar ke endpoint yang sudah dibuat
-      const response = await fetch('/api/approval/undangan', {
+      const response = await fetch('http://localhost:4000/api/approval/undangan', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -57,16 +55,13 @@ const ApprovalUndangan = () => {
       }
 
       const result = await response.json();
-      
       if (result.success) {
         setUndanganList(result.data || []);
       } else {
         throw new Error(result.error || 'Failed to fetch undangan data');
       }
-
     } catch (error) {
       console.error('Error loading undangan data:', error);
-      
       // Fallback dummy data berdasarkan struktur database yang sebenarnya
       const dummyData = [
         {
@@ -83,7 +78,6 @@ const ApprovalUndangan = () => {
           keterangan: 'Mohon hadir tepat waktu, mengingat agenda padat.',
           label: 'merah',
           status: 'baru',
-          
           // Data dari tabel letter_undangan
           hari_tanggal_acara: '2025-09-10',
           pukul: '09:39:00',
@@ -92,7 +86,6 @@ const ApprovalUndangan = () => {
           dress_code: 'Formal',
           rsvp_required: 'tidak',
           dokumentasi: 'Disediakan dokumentasi foto dan notulensi resmi',
-          
           // Data dari tabel agenda (jika ada)
           status_kehadiran: 'belum_konfirmasi',
           catatan_kehadiran: null,
@@ -112,7 +105,6 @@ const ApprovalUndangan = () => {
           keterangan: 'Diharapkan membawa bahan paparan singkat mengenai peran DPD RI dalam mendukung otonomi daerah.',
           label: 'hijau',
           status: 'baru',
-          
           hari_tanggal_acara: '2025-09-23',
           pukul: '15:30:00',
           tempat: 'Ruang Rapat Utama DPD RI',
@@ -120,7 +112,6 @@ const ApprovalUndangan = () => {
           dress_code: 'Formal',
           rsvp_required: 'ya',
           dokumentasi: 'Dokumentasi akan dilaksanakan oleh Humas Kemendagri dan Biro Humas DPD RI.',
-          
           status_kehadiran: 'belum_konfirmasi',
           catatan_kehadiran: null,
           tanggal_konfirmasi: null,
@@ -139,7 +130,6 @@ const ApprovalUndangan = () => {
           keterangan: 'Diharapkan hadir sebagai narasumber utama dalam sesi pembukaan.',
           label: 'hitam',
           status: 'baru',
-          
           hari_tanggal_acara: '2025-09-24',
           pukul: '09:00:00',
           tempat: 'Ruang Rapat Utama DPD RI',
@@ -147,24 +137,24 @@ const ApprovalUndangan = () => {
           dress_code: 'Formal',
           rsvp_required: 'tidak',
           dokumentasi: null,
-          
           status_kehadiran: 'belum_konfirmasi',
           catatan_kehadiran: null,
           tanggal_konfirmasi: null,
           tanggal_agenda: '2025-09-24'
         }
       ];
-
       setUndanganList(dummyData);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fungsi untuk update status kehadiran di tabel agenda - API call yang benar
+  // FIXED: Fungsi untuk update status kehadiran - backend handle notifikasi
   const handleKehadiranUpdate = async (letterId, statusKehadiran, catatan = '') => {
     try {
-      const response = await fetch(`/api/approval/agenda/${letterId}`, {
+      const userId = parseInt(localStorage.getItem('userId')) || 1;
+      
+      const response = await fetch(`http://localhost:4000/api/approval/agenda/${letterId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -174,21 +164,20 @@ const ApprovalUndangan = () => {
           jenis_surat: 'undangan',
           status_kehadiran: statusKehadiran,
           catatan_kehadiran: catatan,
-          created_by: 1 // ID user ketua
+          created_by: userId
         })
       });
 
       const result = await response.json();
-
       if (!response.ok || !result.success) {
         throw new Error(result.error || 'Failed to update attendance status');
       }
 
       // Update local state
-      setUndanganList(prev => 
-        prev.map(item => 
-          item.id === letterId ? { 
-            ...item, 
+      setUndanganList(prev =>
+        prev.map(item =>
+          item.id === letterId ? {
+            ...item,
             status_kehadiran: statusKehadiran,
             catatan_kehadiran: catatan,
             tanggal_konfirmasi: new Date().toISOString()
@@ -198,9 +187,12 @@ const ApprovalUndangan = () => {
 
       console.log(`Successfully updated attendance status for letter ID ${letterId} to ${statusKehadiran}`);
       
+      // Success feedback
+      alert(`Status kehadiran berhasil diperbarui menjadi "${statusKehadiran === 'hadir' ? 'Akan Hadir' : 'Tidak Hadir'}". Notifikasi telah dikirim ke staf.`);
+      
     } catch (error) {
       console.error('Error updating attendance status:', error);
-      alert('Gagal memperbarui status kehadiran. Silakan coba lagi.');
+      alert('Gagal memperbarui status kehadiran: ' + error.message);
     }
   };
 
@@ -270,13 +262,13 @@ const ApprovalUndangan = () => {
         border: '1px solid rgba(14, 165, 233, 0.1)',
         transition: 'all 0.3s ease'
       }}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
           alignItems: 'flex-start',
           flexDirection: isMobile ? 'column' : 'row',
           gap: isMobile ? '12px' : '16px',
-          marginBottom: '16px' 
+          marginBottom: '16px'
         }}>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
@@ -293,19 +285,19 @@ const ApprovalUndangan = () => {
                 borderRadius: '12px',
                 fontSize: '12px',
                 fontWeight: '600',
-                backgroundColor: item.label === 'merah' ? '#fee2e2' : 
-                               item.label === 'kuning' ? '#fef3c7' :
-                               item.label === 'hijau' ? '#d1fae5' : '#f3f4f6',
-                color: item.label === 'merah' ? '#dc2626' : 
+                backgroundColor: item.label === 'merah' ? '#fee2e2' :
+                                item.label === 'kuning' ? '#fef3c7' :
+                                item.label === 'hijau' ? '#d1fae5' : '#f3f4f6',
+                color: item.label === 'merah' ? '#dc2626' :
                        item.label === 'kuning' ? '#92400e' :
                        item.label === 'hijau' ? '#065f46' : '#374151'
               }}>
                 {getPriorityLabel(item.label)}
               </span>
             </div>
-            
+
             {/* Document Info */}
-            <div style={{ 
+            <div style={{
               backgroundColor: '#f8fafc',
               padding: '12px',
               borderRadius: '8px',
@@ -314,8 +306,8 @@ const ApprovalUndangan = () => {
               <h4 style={{ fontSize: '14px', fontWeight: '600', color: colors.neutral.textDark, margin: '0 0 8px 0' }}>
                 Informasi Surat:
               </h4>
-              <div style={{ 
-                display: 'grid', 
+              <div style={{
+                display: 'grid',
                 gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
                 gap: '6px'
               }}>
@@ -349,13 +341,13 @@ const ApprovalUndangan = () => {
                 </span>
               </div>
             </div>
-            
+
             {/* Schedule Info */}
-            <div style={{ 
-              display: 'grid', 
+            <div style={{
+              display: 'grid',
               gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-              gap: '8px', 
-              marginBottom: '12px' 
+              gap: '8px',
+              marginBottom: '12px'
             }}>
               <span style={{
                 fontSize: '14px',
@@ -412,7 +404,7 @@ const ApprovalUndangan = () => {
                 <span>👔</span> {item.dress_code || 'Tidak ditentukan'}
               </span>
             </div>
-            
+
             {/* Description */}
             <div style={{ marginBottom: '12px' }}>
               <h4 style={{ fontSize: '14px', fontWeight: '600', color: colors.neutral.textDark, margin: '0 0 6px 0' }}>
@@ -427,13 +419,13 @@ const ApprovalUndangan = () => {
                 {item.uraian || 'Deskripsi tidak tersedia'}
               </p>
             </div>
-            
+
             {/* RSVP and Documentation */}
-            <div style={{ 
-              display: 'grid', 
+            <div style={{
+              display: 'grid',
               gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-              gap: '8px', 
-              marginBottom: '12px' 
+              gap: '8px',
+              marginBottom: '12px'
             }}>
               <span style={{
                 fontSize: '14px',
@@ -456,7 +448,7 @@ const ApprovalUndangan = () => {
                 </span>
               )}
             </div>
-            
+
             {/* Documentation Details */}
             {item.dokumentasi && (
               <div style={{ marginBottom: '12px' }}>
@@ -496,7 +488,7 @@ const ApprovalUndangan = () => {
               </div>
             )}
           </div>
-          
+
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -510,16 +502,16 @@ const ApprovalUndangan = () => {
               backgroundColor: statusKehadiran.bg,
               color: statusKehadiran.color
             }}>
-              {item.status_kehadiran === 'hadir' ? 'Akan Hadir' : 
+              {item.status_kehadiran === 'hadir' ? 'Akan Hadir' :
                item.status_kehadiran === 'tidak_hadir' ? 'Tidak Hadir' : 'Belum Konfirmasi'}
             </span>
           </div>
         </div>
-        
+
         {/* Action Buttons - Update status kehadiran */}
         {item.status_kehadiran === 'belum_konfirmasi' && (
-          <div style={{ 
-            display: 'flex', 
+          <div style={{
+            display: 'flex',
             gap: '12px',
             flexDirection: isMobile ? 'column' : 'row'
           }}>
@@ -548,6 +540,7 @@ const ApprovalUndangan = () => {
             >
               ✅ Akan Hadir
             </button>
+            
             <button
               onClick={() => handleKehadiranUpdate(item.id, 'tidak_hadir', 'Ketua berhalangan hadir')}
               style={{
@@ -573,6 +566,7 @@ const ApprovalUndangan = () => {
             >
               ❌ Tidak Hadir
             </button>
+            
             <button
               style={{
                 flex: 1,
@@ -642,8 +636,7 @@ const ApprovalUndangan = () => {
           }
         `}
       </style>
-      
-      <div style={{ 
+      <div style={{
         fontFamily: "'Inter', 'Poppins', sans-serif",
         backgroundColor: colors.neutral.formBg,
         minHeight: '100vh',
@@ -653,7 +646,6 @@ const ApprovalUndangan = () => {
         maxWidth: '100%',
         overflowX: 'hidden'
       }}>
-        
         {/* Header Section */}
         <div style={{
           background: colors.gradients.teal,
@@ -673,7 +665,6 @@ const ApprovalUndangan = () => {
             background: 'rgba(255, 255, 255, 0.1)',
             filter: 'blur(60px)'
           }} />
-          
           <div style={{ position: 'relative', zIndex: 2 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <h1 style={{
@@ -685,7 +676,7 @@ const ApprovalUndangan = () => {
               }}>
                 Approval Undangan
               </h1>
-              <button 
+              <button
                 style={{
                   color: 'white',
                   background: 'none',
@@ -719,22 +710,21 @@ const ApprovalUndangan = () => {
           boxShadow: '0 2px 12px rgba(14, 165, 233, 0.08)',
           border: '1px solid rgba(14, 165, 233, 0.1)'
         }}>
-          <div style={{ 
-            display: 'flex', 
+          <div style={{
+            display: 'flex',
             gap: '12px',
             flexDirection: isMobile ? 'column' : 'row',
             alignItems: isMobile ? 'stretch' : 'center',
             justifyContent: 'space-between'
           }}>
-            <h3 style={{ 
-              fontSize: '16px', 
-              fontWeight: '600', 
+            <h3 style={{
+              fontSize: '16px',
+              fontWeight: '600',
               color: colors.neutral.textDark,
               margin: '0'
             }}>
               Filter Undangan ({filteredUndangan.length} item)
             </h3>
-            
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {[
                 { key: 'all', label: 'Semua' },
@@ -769,7 +759,6 @@ const ApprovalUndangan = () => {
           {filteredUndangan.map((item) => (
             <UndanganItem key={item.id} item={item} />
           ))}
-          
           {filteredUndangan.length === 0 && (
             <div style={{
               backgroundColor: colors.neutral.white,

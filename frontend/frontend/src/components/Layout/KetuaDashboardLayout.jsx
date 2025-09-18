@@ -61,15 +61,11 @@ const KetuaDashboardLayout = ({ children }) => {
       ]
     },
     {
-      name: 'Manajemen Surat',
-      path: '/dashboardKetua/surat',
+      name: 'Proposal',
+      path: '/dashboardKetua/proposal',
       icon: '📄',
       color: colors.primary.teal,
-      submenu: [
-        { name: 'Semua Surat', path: '/dashboardKetua/surat/semua' },
-        { name: 'Disposisi', path: '/dashboardKetua/surat/disposisi' },
-        { name: 'Proposal', path: '/dashboardKetua/surat/proposal' }
-      ]
+      count: 7
     },
     {
       name: 'Agenda',
@@ -496,9 +492,7 @@ const KetuaDashboardLayout = ({ children }) => {
                   {location.pathname === '/dashboardKetua' ? 'Dashboard Ketua' : 
                    location.pathname.includes('approval/undangan') ? 'Approval Undangan' :
                    location.pathname.includes('approval/audiensi') ? 'Approval Audiensi' :
-                   location.pathname.includes('surat/semua') ? 'Semua Surat' :
-                   location.pathname.includes('surat/disposisi') ? 'Manajemen Disposisi' :
-                   location.pathname.includes('surat/proposal') ? 'Manajemen Proposal' :
+                   location.pathname.includes('proposal') ? 'Manajemen Proposal' :
                    location.pathname.includes('agenda') ? 'Agenda Ketua' :
                    location.pathname.includes('notifikasi') ? 'Notifikasi' :
                    location.pathname.includes('settings') ? 'Pengaturan' : 'Dashboard'

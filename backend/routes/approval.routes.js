@@ -559,19 +559,14 @@ const createAttendanceNotification = async (
       letter.tanggal_terima
     ).toLocaleDateString("id-ID")}. Catatan: ${catatan}`;
 
+    // PERBAIKAN: Hanya gunakan kolom yang ada di database
     const notifQuery = `
       INSERT INTO notifications 
-      (staff_id, jenis, letter_jenis, pesan, letter_id, perihal, asal_surat, status_read, created_at)
-      VALUES (NULL, 'attendance_update', ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)
+      (staff_id, jenis, pesan, letter_id, status_read, created_at)
+      VALUES (NULL, 'attendance_update', ?, ?, 0, CURRENT_TIMESTAMP)
     `;
 
-    await db.execute(notifQuery, [
-      jenisText,
-      pesan,
-      letterId,
-      letter.perihal,
-      letter.asal_surat,
-    ]);
+    await db.execute(notifQuery, [pesan, letterId]);
     console.log(
       "✅ Attendance notification created successfully for letter ID:",
       letterId
@@ -580,7 +575,6 @@ const createAttendanceNotification = async (
     console.error("❌ Error creating attendance notification:", error);
   }
 };
-
 // GET - Gabungan undangan dan audiensi untuk approval center
 router.get("/all", async (req, res) => {
   try {
