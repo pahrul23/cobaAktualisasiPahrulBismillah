@@ -260,7 +260,7 @@ const LandingPage = () => {
                   fontSize: '2rem',
                   fontWeight: '800'
                 }}>
-                  ADMIRE System
+                  ADMIRE SYSTEM
                 </h3>
                 <p style={{
                   margin: '0 0 2.5rem 0',

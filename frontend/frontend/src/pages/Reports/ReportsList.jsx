@@ -21,16 +21,27 @@ const ReportsList = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/notifications/staff', {
+      const authToken = token || localStorage.getItem('token');
+      
+      if (!authToken) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+      
+      const response = await fetch('http://localhost:4000/api/notifications/staff', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token || localStorage.getItem('token')}`
+          'Authorization': `Bearer ${authToken}`
         }
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        } catch (parseError) {
+          throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+        }
       }
 
       const result = await response.json();
@@ -40,11 +51,11 @@ const ReportsList = () => {
         
         // Fetch statistics
         try {
-          const statsResponse = await fetch('/api/notifications/stats', {
+          const statsResponse = await fetch('http://localhost:4000/api/notifications/stats', {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token || localStorage.getItem('token')}`
+              'Authorization': `Bearer ${authToken}`
             }
           });
 
@@ -55,10 +66,15 @@ const ReportsList = () => {
             }
           }
         } catch (statsError) {
-          console.warn('Stats fetch failed:', statsError);
+          console.warn('Failed to fetch statistics:', statsError);
         }
       } else {
-        throw new Error(result.error || 'Failed to fetch notifications');
+        if (!result.success) {
+          throw new Error(result.message || result.error || 'Response tidak berhasil');
+        }
+        if (!result.data) {
+          setNotifications([]);
+        }
       }
       
     } catch (error) {
@@ -72,11 +88,12 @@ const ReportsList = () => {
   // Mark notification as read
   const markAsRead = async (notificationId) => {
     try {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
+      const authToken = token || localStorage.getItem('token');
+      const response = await fetch(`http://localhost:4000/api/notifications/${notificationId}/read`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token || localStorage.getItem('token')}`
+          'Authorization': `Bearer ${authToken}`
         }
       });
 
@@ -102,11 +119,12 @@ const ReportsList = () => {
   // Mark all as read
   const markAllAsRead = async () => {
     try {
-      const response = await fetch('/api/notifications/mark-all-read', {
+      const authToken = token || localStorage.getItem('token');
+      const response = await fetch('http://localhost:4000/api/notifications/mark-all-read', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token || localStorage.getItem('token')}`
+          'Authorization': `Bearer ${authToken}`
         }
       });
 
@@ -124,14 +142,19 @@ const ReportsList = () => {
   // Format date
   const formatDate = (dateString) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      return new Date(dateString).toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
   };
 
   // Get notification icon
@@ -153,9 +176,14 @@ const ReportsList = () => {
     fetchNotifications();
     
     // Auto refresh every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 30000);
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, [token]);
 
   return (
     <DashboardLayout>
@@ -187,12 +215,12 @@ const ReportsList = () => {
               )}
             </div>
             
-            {stats.unread_count > 0 && (
+            <div style={{ display: 'flex', gap: '8px' }}>
               <button
-                onClick={markAllAsRead}
+                onClick={fetchNotifications}
                 style={{
                   padding: '8px 16px',
-                  background: '#10b981',
+                  background: '#8b5cf6',
                   color: 'white',
                   border: 'none',
                   borderRadius: '6px',
@@ -201,9 +229,27 @@ const ReportsList = () => {
                   fontWeight: '600'
                 }}
               >
-                Tandai Semua Dibaca
+                Refresh
               </button>
-            )}
+              
+              {stats.unread_count > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  style={{
+                    padding: '8px 16px',
+                    background: '#10b981',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  Tandai Semua Dibaca
+                </button>
+              )}
+            </div>
           </div>
           <p style={{
             margin: 0,
@@ -324,11 +370,10 @@ const ReportsList = () => {
         ) : error ? (
           <div style={{ textAlign: 'center', padding: '60px' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-            <p style={{ color: '#ef4444' }}>{error}</p>
+            <p style={{ color: '#ef4444', marginBottom: '16px' }}>{error}</p>
             <button 
               onClick={fetchNotifications}
               style={{
-                marginTop: '16px',
                 padding: '8px 16px',
                 background: '#10b981',
                 color: 'white',
@@ -351,11 +396,27 @@ const ReportsList = () => {
             }}>
               Tidak Ada Notifikasi
             </h2>
-            <p style={{ color: '#64748b' }}>
+            <p style={{ color: '#64748b', marginBottom: '16px' }}>
               {filter === 'unread' ? 'Semua notifikasi sudah dibaca' : 
                filter === 'attendance' ? 'Belum ada update kehadiran' :
                'Tidak ada notifikasi untuk ditampilkan'}
             </p>
+            {notifications.length === 0 && (
+              <button 
+                onClick={fetchNotifications}
+                style={{
+                  padding: '8px 16px',
+                  background: '#8b5cf6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  marginTop: '8px'
+                }}
+              >
+                Refresh Data
+              </button>
+            )}
           </div>
         ) : (
           <div style={{ display: 'grid', gap: '16px' }}>

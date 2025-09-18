@@ -19,7 +19,7 @@ const AgendaDetailModal = ({ isOpen, onClose, agendaId, agendaType }) => {
       console.log("Agenda type:", agendaType);
 
       const response = await fetch(
-        `http://localhost:4000/api/agenda/${agendaId}`,
+        `http://localhost:4000/api/approval/agenda/${agendaId}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -66,7 +66,7 @@ const AgendaDetailModal = ({ isOpen, onClose, agendaId, agendaType }) => {
     console.log("=== USEEFFECT TRIGGERED ===");
     console.log("isOpen:", isOpen);
     console.log("agendaId:", agendaId);
-    
+
     if (isOpen && agendaId) {
       console.log("Calling fetchAgendaDetail...");
       fetchAgendaDetail();

@@ -9,7 +9,7 @@ const AudiensiApprovalModal = ({
   onApprove,
   onReject 
 }) => {
-  const [approvalMode, setApprovalMode] = useState(null); // 'approve' or 'reject'
+  const [approvalMode, setApprovalMode] = useState(null);
   const [formData, setFormData] = useState({
     hari_tanggal: '',
     pukul: '',
@@ -18,7 +18,6 @@ const AudiensiApprovalModal = ({
   });
   const [loading, setLoading] = useState(false);
 
-  // ADMIRE Color Palette
   const colors = {
     primary: {
       skyBlue: '#0ea5e9',
@@ -53,12 +52,13 @@ const AudiensiApprovalModal = ({
 
     try {
       setLoading(true);
-      console.log('Approving audiensi with full schedule data:', {
-        letterId: audiensi.letter_id,
-        schedule: formData
-      });
+      console.log('🔄 Starting audiensi approval process...');
+      console.log('📋 Audiensi data:', audiensi);
+      console.log('📅 Schedule data:', formData);
       
-      // Direct API call dengan data lengkap
+      // Ambil user ID dari localStorage atau session
+      const userId = localStorage.getItem('userId') || '1';
+      
       const response = await fetch(`http://localhost:4000/api/approval/audiensi/${audiensi.letter_id}/approval`, {
         method: 'PUT',
         headers: {
@@ -67,7 +67,7 @@ const AudiensiApprovalModal = ({
         },
         body: JSON.stringify({
           action: 'approve',
-          approved_by: 1,
+          approved_by: parseInt(userId),
           schedule: {
             hari_tanggal: formData.hari_tanggal,
             pukul: formData.pukul,
@@ -77,27 +77,44 @@ const AudiensiApprovalModal = ({
         })
       });
 
-      const result = await response.json();
-      console.log('API Response:', result);
-      
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Failed to approve audiensi');
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ HTTP Error Response:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      console.log('Audiensi approved successfully, calling parent callback...');
+      const result = await response.json();
+      console.log('✅ API Response:', result);
       
-      // Call parent to update UI
+      if (!result.success) {
+        throw new Error(result.error || result.message || 'Failed to approve audiensi');
+      }
+
+      console.log('✅ Audiensi approved successfully');
+      
+      // Call parent callback untuk update UI
       if (onApprove) {
+        console.log('📞 Calling parent onApprove callback...');
         await onApprove(audiensi.letter_id, {
           action: 'approve',
-          schedule: formData
+          schedule: formData,
+          result: result.data
         });
       }
       
-      // Success notification
-      alert(`Audiensi berhasil disetujui dan dijadwalkan!\nTanggal: ${formData.hari_tanggal}\nWaktu: ${formData.pukul}\nTempat: ${formData.tempat}\n\nNotifikasi telah dikirim ke staf.`);
+      // Success message
+      alert(`Audiensi berhasil disetujui dan dijadwalkan!
+
+Tanggal: ${formData.hari_tanggal}
+Waktu: ${formData.pukul}
+Tempat: ${formData.tempat}
+
+Notifikasi telah dikirim ke staf secara otomatis.`);
       
-      // Reset and close
+      // Reset form dan close modal
       setApprovalMode(null);
       setFormData({
         hari_tanggal: '',
@@ -108,8 +125,8 @@ const AudiensiApprovalModal = ({
       onClose();
       
     } catch (error) {
-      console.error('Error approving audiensi:', error);
-      alert('Gagal menyetujui audiensi. Silakan coba lagi.');
+      console.error('💥 Error approving audiensi:', error);
+      alert(`Gagal menyetujui audiensi: ${error.message}\n\nSilakan coba lagi atau hubungi admin.`);
     } finally {
       setLoading(false);
     }
@@ -123,6 +140,9 @@ const AudiensiApprovalModal = ({
 
     try {
       setLoading(true);
+      console.log('🔄 Starting audiensi rejection process...');
+      
+      const userId = localStorage.getItem('userId') || '1';
       
       const response = await fetch(`http://localhost:4000/api/approval/audiensi/${audiensi.letter_id}/approval`, {
         method: 'PUT',
@@ -132,25 +152,37 @@ const AudiensiApprovalModal = ({
         },
         body: JSON.stringify({
           action: 'reject',
-          approved_by: 1,
+          approved_by: parseInt(userId),
           notes: formData.catatan
         })
       });
 
-      const result = await response.json();
-      
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Failed to reject audiensi');
+      console.log('📡 Reject response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Reject HTTP Error:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
+      const result = await response.json();
+      console.log('✅ Reject API Response:', result);
+      
+      if (!result.success) {
+        throw new Error(result.error || result.message || 'Failed to reject audiensi');
+      }
+
+      // Call parent callback
       if (onReject) {
+        console.log('📞 Calling parent onReject callback...');
         await onReject(audiensi.letter_id, {
           action: 'reject',
-          notes: formData.catatan
+          notes: formData.catatan,
+          result: result.data
         });
       }
       
-      alert('Audiensi telah ditolak. Notifikasi telah dikirim ke pemohon.');
+      alert('Audiensi telah ditolak. Notifikasi telah dikirim secara otomatis.');
       
       setApprovalMode(null);
       setFormData({
@@ -162,8 +194,8 @@ const AudiensiApprovalModal = ({
       onClose();
       
     } catch (error) {
-      console.error('Error rejecting audiensi:', error);
-      alert('Gagal menolak audiensi. Silakan coba lagi.');
+      console.error('💥 Error rejecting audiensi:', error);
+      alert(`Gagal menolak audiensi: ${error.message}\n\nSilakan coba lagi atau hubungi admin.`);
     } finally {
       setLoading(false);
     }
@@ -173,7 +205,6 @@ const AudiensiApprovalModal = ({
 
   return (
     <>
-      {/* Backdrop */}
       <div 
         style={{
           position: 'fixed',
@@ -190,7 +221,6 @@ const AudiensiApprovalModal = ({
         }}
         onClick={onClose}
       >
-        {/* Modal Content */}
         <div 
           style={{
             backgroundColor: colors.neutral.white,
@@ -709,7 +739,6 @@ const ApprovalAudiensi = () => {
   const [selectedAudiensi, setSelectedAudiensi] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // ADMIRE Color Palette
   const colors = {
     primary: {
       skyBlue: '#0ea5e9',
@@ -732,7 +761,6 @@ const ApprovalAudiensi = () => {
     }
   };
 
-  // Responsive detection
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -750,9 +778,8 @@ const ApprovalAudiensi = () => {
   const loadAudiensiData = async () => {
     try {
       setLoading(true);
-      console.log('Loading audiensi data...');
+      console.log('🔄 Loading audiensi data...');
       
-      // API call to fetch pending audiensi data 
       const response = await fetch('http://localhost:4000/api/approval/audiensi/pending', {
         method: 'GET',
         headers: {
@@ -761,23 +788,29 @@ const ApprovalAudiensi = () => {
         }
       });
 
+      console.log('📡 Load response status:', response.status);
+      console.log('📡 Load response ok:', response.ok);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Load Error Response:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const result = await response.json();
+      console.log('📦 Load result:', result);
       
       if (result.success) {
-        console.log(`Loaded ${result.data.length} pending audiensi`);
+        console.log(`✅ Loaded ${result.data.length} pending audiensi`);
         setAudiensiList(result.data || []);
       } else {
-        throw new Error(result.error || 'Failed to fetch audiensi data');
+        throw new Error(result.error || result.message || 'Failed to fetch audiensi data');
       }
       
     } catch (error) {
-      console.error('Error loading audiensi data:', error);
+      console.error('💥 Error loading audiensi data:', error);
       
-      // Fallback dengan data dummy untuk development
+      // Fallback data untuk development - HAPUS di production
       const dummyData = [
         {
           letter_id: 67,
@@ -789,8 +822,7 @@ const ApprovalAudiensi = () => {
           tanggal_surat: '2025-09-07',
           status: 'baru',
           label: 'merah',
-          uraian: 'Bersama ini kami memohon kesempatan untuk beraudiensi dengan Ketua DPD RI guna menyampaikan aspirasi masyarakat terkait implementasi RUU Perlindungan Data Pribadi, khususnya mengenai perlindungan hak masyarakat sipil terhadap potensi kebocoran data.',
-          
+          uraian: 'Bersama ini kami memohon kesempatan untuk beraudiensi dengan Ketua DPD RI guna menyampaikan aspirasi masyarakat terkait implementasi RUU Perlindungan Data Pribadi.',
           nama_pemohon: 'Budi Santoso',
           instansi_organisasi: 'LSM Transparansi Bangsa',
           jumlah_peserta: 8,
@@ -799,36 +831,12 @@ const ApprovalAudiensi = () => {
           pukul: '10:00:00',
           tempat: 'Ruang Rapat DPD RI',
           dokumentasi: 'Dokumentasi resmi akan disediakan',
-          
-          status_kehadiran: 'belum_konfirmasi',
-          approved_status: 'pending'
-        },
-        {
-          letter_id: 69,
-          no_surat: '678/AUDIENSI/IX/2025',
-          no_disposisi: '102/AUD/DPD/2025',
-          asal_surat: 'Asosiasi Pengusaha Digital Indonesia (APDI)',
-          perihal: 'Permohonan Audiensi terkait Regulasi Startup Digital',
-          tanggal_terima: '2025-09-08',
-          tanggal_surat: '2025-09-07',
-          status: 'baru',
-          label: 'merah',
-          uraian: 'Bersama surat ini kami mengajukan permohonan audiensi dengan Ketua DPD RI untuk menyampaikan aspirasi pelaku usaha startup digital terkait tantangan regulasi, investasi, dan perlindungan konsumen di era ekonomi digital.',
-          
-          nama_pemohon: 'Ir. Andi Prasetyo',
-          instansi_organisasi: 'Asosiasi Pengusaha Digital Indonesia (APDI)',
-          jumlah_peserta: 6,
-          topik_audiensi: 'Diskusi regulasi dan dukungan kebijakan untuk pertumbuhan startup digital di Indonesia',
-          hari_tanggal: '2025-09-19',
-          pukul: '14:00:00',
-          tempat: 'Ruang Rapat DPD RI',
-          dokumentasi: 'Tim dokumentasi APDI akan hadir',
-          
           status_kehadiran: 'belum_konfirmasi',
           approved_status: 'pending'
         }
       ];
       
+      console.log('⚠️ Using fallback dummy data');
       setAudiensiList(dummyData);
     } finally {
       setLoading(false);
@@ -837,6 +845,7 @@ const ApprovalAudiensi = () => {
 
   // Handle approve button click - opens modal
   const handleApproveClick = (audiensi) => {
+    console.log('📝 Opening approval modal for:', audiensi);
     setSelectedAudiensi(audiensi);
     setShowModal(true);
   };
@@ -844,13 +853,15 @@ const ApprovalAudiensi = () => {
   // Handle modal approve with schedule
   const handleModalApprove = async (letterId, approvalData) => {
     try {
-      console.log('Parent handling approval:', approvalData);
+      console.log('🔄 Parent handling approval completion:', approvalData);
       
-      // Remove from pending list
+      // Remove dari pending list karena sudah diproses
       setAudiensiList(prev => prev.filter(item => item.letter_id !== letterId));
       
+      console.log('✅ Audiensi removed from pending list');
+      
     } catch (error) {
-      console.error('Error in parent approve handler:', error);
+      console.error('💥 Error in parent approve handler:', error);
       throw error;
     }
   };
@@ -858,13 +869,15 @@ const ApprovalAudiensi = () => {
   // Handle modal reject 
   const handleModalReject = async (letterId, rejectData) => {
     try {
-      console.log('Parent handling rejection:', rejectData);
+      console.log('🔄 Parent handling rejection completion:', rejectData);
       
-      // Remove from pending list
+      // Remove dari pending list karena sudah diproses
       setAudiensiList(prev => prev.filter(item => item.letter_id !== letterId));
       
+      console.log('✅ Rejected audiensi removed from pending list');
+      
     } catch (error) {
-      console.error('Error in parent reject handler:', error);
+      console.error('💥 Error in parent reject handler:', error);
       throw error;
     }
   };
@@ -914,7 +927,7 @@ const ApprovalAudiensi = () => {
     }
   };
 
-  // Audiensi Item Component with Modal Integration
+  // Audiensi Item Component
   const AudiensiItem = ({ item }) => (
     <div style={{
       backgroundColor: colors.neutral.white,
@@ -1034,7 +1047,7 @@ const ApprovalAudiensi = () => {
         </div>
       </div>
       
-      {/* Action Button - Only Approve (Modal handles both approve/reject) */}
+      {/* Action Buttons */}
       <div style={{ 
         display: 'flex', 
         gap: '12px',
@@ -1185,10 +1198,14 @@ const ApprovalAudiensi = () => {
                   textDecoration: 'none',
                   fontSize: '14px',
                   fontWeight: '600',
-                  opacity: '0.9'
+                  opacity: '0.9',
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  transition: 'all 0.3s ease'
                 }}
               >
-                ← Kembali ke Approval Center
+                ← Kembali
               </Link>
             </div>
             <p style={{
@@ -1197,7 +1214,7 @@ const ApprovalAudiensi = () => {
               margin: '0',
               fontWeight: '500'
             }}>
-              Kelola permohonan audiensi dari berbagai organisasi dan lembaga
+              Kelola permohonan audiensi dari berbagai organisasi
             </p>
           </div>
         </div>
