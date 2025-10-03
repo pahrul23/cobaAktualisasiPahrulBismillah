@@ -63,7 +63,7 @@ const proposalController = {
         LEFT JOIN letters l ON p.letter_id = l.id
         LEFT JOIN users u ON l.created_by = u.id
         ${whereClause}
-        ORDER BY l.created_at DESC
+        ORDER BY p.created_at DESC
         LIMIT ? OFFSET ?
       `;
 
@@ -401,129 +401,7 @@ const proposalController = {
       await connection.execute("DELETE FROM letters WHERE id = ?", [letterId]);
 
       await connection.commit();
-const db = require("../config/database");
 
-const proposalController = {
-  // Get all proposals with filtering and pagination
-  async getAllProposals(req, res) {
-    try {
-      const { page = 1, limit = 20, status, q } = req.query;
-
-      let whereConditions = [];
-      let queryParams = [];
-
-      // Filter by status
-      if (status && status !== "all") {
-        whereConditions.push("p.status = ?");
-        queryParams.push(status);
-      }
-
-      // Search by judul, nama pengirim, atau instansi
-      if (q) {
-        whereConditions.push(
-          "(p.judul_proposal LIKE ? OR p.nama_pengirim LIKE ? OR p.instansi LIKE ?)"
-        );
-        queryParams.push(`%${q}%`, `%${q}%`, `%${q}%`);
-      }
-
-      const whereClause = whereConditions.length > 0 
-        ? "WHERE " + whereConditions.join(" AND ") 
-        : "";
-
-      // Count total records
-      const countQuery = `SELECT COUNT(*) as total FROM proposals p ${whereClause}`;
-      const [countResult] = await db.execute(countQuery, queryParams);
-      const totalRecords = countResult[0].total;
-
-      const offset = (page - 1) * limit;
-      const totalPages = Math.ceil(totalRecords / limit);
-
-      // Main query
-      const query = `
-        SELECT 
-          p.*,
-          l.no_surat,
-          l.asal_surat,
-          l.perihal,
-          l.created_at as letter_created_at
-        FROM proposals p
-        LEFT JOIN letters l ON p.letter_id = l.id
-        ${whereClause}
-        ORDER BY l.created_at DESC
-        LIMIT ? OFFSET ?
-      `;
-
-      queryParams.push(parseInt(limit), parseInt(offset));
-      const [proposals] = await db.execute(query, queryParams);
-
-      res.json({
-        success: true,
-        data: {
-          proposals,
-          pagination: {
-            page: parseInt(page),
-            limit: parseInt(limit),
-            total: totalRecords,
-            totalPages,
-          },
-        },
-      });
-    } catch (error) {
-      console.error("Error fetching proposals:", error);
-      res.status(500).json({
-        success: false,
-        message: "Terjadi kesalahan saat mengambil data proposal",
-        error: error.message,
-      });
-    }
-  },
-
-  // Get proposal statistics
-  async getProposalStats(req, res) {
-    try {
-      const queries = await Promise.all([
-        db.execute("SELECT COUNT(*) as total FROM proposals"),
-        db.execute(`
-          SELECT status, COUNT(*) as count 
-          FROM proposals 
-          GROUP BY status
-        `),
-      ]);
-
-      const [[totalResult], statusResult] = queries;
-
-      const statusCounts = {
-        pending: 0,
-        diproses: 0,
-        verifikasi: 0,
-        ditolak: 0,
-        selesai: 0,
-        ditindaklanjuti: 0
-      };
-
-      statusResult[0].forEach(item => {
-        statusCounts[item.status] = item.count;
-      });
-
-      res.json({
-        success: true,
-        data: {
-          total: totalResult[0].total,
-          statusCounts,
-        },
-      });
-    } catch (error) {
-      console.error("Error fetching proposal stats:", error);
-      res.status(500).json({
-        success: false,
-        message: "Terjadi kesalahan saat mengambil statistik proposal",
-        error: error.message,
-      });
-    }
-  },
-};
-
-module.exports = proposalController;
       res.json({
         success: true,
         message: "Proposal berhasil dihapus",

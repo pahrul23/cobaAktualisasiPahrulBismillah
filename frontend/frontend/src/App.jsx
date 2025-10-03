@@ -1,4 +1,4 @@
-// Path: /frontend/src/App.jsx - FIXED dengan KetuaDashboard
+// Path: /frontend/src/App.jsx - FIXED dengan ProposalList Ketua
 import {
   BrowserRouter as Router,
   Routes,
@@ -28,6 +28,9 @@ import KetuaDashboard from "./pages/Ketua/KetuaDashboard";
 import ApprovalCenter from "./pages/Ketua/ApprovalCenter/ApprovalCenter";
 import ApprovalUndangan from "./pages/Ketua/ApprovalCenter/ApprovalUndangan";
 import ApprovalAudiensi from "./pages/Ketua/ApprovalCenter/ApprovalAudiensi";
+
+// TAMBAHKAN INI: Import ProposalList untuk Ketua
+import KetuaProposalList from "./pages/Ketua/Proposal/ProposalList";
 
 // NEW: Placeholder pages untuk ketua (sementara)
 const PlaceholderPage = ({ title }) => (
@@ -104,8 +107,6 @@ function App() {
 
                   {/* Approval Center - PERBAIKAN DI SINI */}
                   <Route path="approval" element={<ApprovalCenter />} />
-                  {/* <Route path="approval/undangan" element={<PlaceholderPage title="Approval Undangan" />} />
-                  <Route path="approval/audiensi" element={<PlaceholderPage title="Approval Audiensi" />} /> */}
                   <Route
                     path="approval/undangan"
                     element={<ApprovalUndangan />}
@@ -124,9 +125,11 @@ function App() {
                     path="surat/disposisi"
                     element={<PlaceholderPage title="Manajemen Disposisi" />}
                   />
+                  
+                  {/* GANTI INI: Route Proposal untuk Ketua */}
                   <Route
-                    path="surat/proposal"
-                    element={<PlaceholderPage title="Manajemen Proposal" />}
+                    path="proposal"
+                    element={<KetuaProposalList />}
                   />
 
                   {/* Agenda */}
@@ -296,5 +299,4 @@ function App() {
     </Router>
   );
 }
-
 export default App;
