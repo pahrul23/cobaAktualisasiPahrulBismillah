@@ -299,6 +299,7 @@ const KetuaDashboard = () => {
               margin: '0'
             }}>
               {description}
+              {/* {description} */}
             </p>
           )}
         </div>

@@ -79,7 +79,8 @@ app.get('/api/health', (req, res) => {
     },
     executive_dashboard: 'Active',
     approval_center: 'Active',
-    notifications: 'Active'
+    notifications: 'Active',
+    user_management: 'Active'
   })
 })
 
@@ -104,6 +105,14 @@ app.get('/api', (req, res) => {
       executive: '/api/executive',
       approval: '/api/approval',
       notifications: '/api/notifications'
+    },
+    user_features: {
+      profile: '/api/users/profile',
+      updateProfile: '/api/users/profile (PUT)',
+      changePassword: '/api/users/change-password',
+      allUsers: '/api/users/all',
+      userById: '/api/users/:id',
+      deleteUser: '/api/users/:id (DELETE)'
     },
     executive_features: {
       dashboard: '/api/executive/surat-summary',
@@ -223,20 +232,66 @@ app.listen(PORT, () => {
   }
   
   console.log(`\n📋 Available endpoints:`)
+  console.log(`\n🔐 Authentication:`)
   console.log(`   - POST /api/auth/login`)
-  console.log(`   - GET  /api/health`)
-  console.log(`   - GET  /api/executive/notifications`)
+  console.log(`   - POST /api/auth/register`)
+  console.log(`   - POST /api/auth/logout`)
+  
+  console.log(`\n👤 User Management:`)
+  console.log(`   - GET  /api/users/profile`)
+  console.log(`   - PUT  /api/users/profile`)
+  console.log(`   - POST /api/users/change-password`)
+  console.log(`   - GET  /api/users/all`)
+  console.log(`   - GET  /api/users/:id`)
+  console.log(`   - DELETE /api/users/:id`)
+  
+  console.log(`\n📧 Letters & Surat:`)
   console.log(`   - GET  /api/letters`)
+  console.log(`   - POST /api/letters`)
+  console.log(`   - GET  /api/letters/:id`)
+  console.log(`   - PUT  /api/letters/:id`)
+  console.log(`   - DELETE /api/letters/:id`)
+  
+  console.log(`\n📝 Proposals:`)
+  console.log(`   - GET  /api/proposals`)
+  console.log(`   - POST /api/proposals`)
+  
+  console.log(`\n📅 Agenda:`)
+  console.log(`   - GET  /api/agenda`)
+  console.log(`   - POST /api/agenda`)
+  
+  console.log(`\n✉️ Invitations:`)
+  console.log(`   - GET  /api/invites`)
+  console.log(`   - POST /api/invites`)
+  
+  console.log(`\n📋 Dispositions:`)
+  console.log(`   - GET  /api/dispositions`)
+  console.log(`   - POST /api/dispositions`)
+  
+  console.log(`\n👔 Executive Dashboard (Ketua):`)
+  console.log(`   - GET  /api/executive/surat-summary`)
+  console.log(`   - GET  /api/executive/proposals`)
+  console.log(`   - GET  /api/executive/undangan`)
+  console.log(`   - GET  /api/executive/notifications`)
+  console.log(`   - GET  /api/executive/health`)
+  
+  console.log(`\n✅ Approval Center (Ketua):`)
   console.log(`   - GET  /api/approval/all`)
-  console.log(`   - GET  /api/approval/undangan`) 
+  console.log(`   - GET  /api/approval/undangan`)
   console.log(`   - GET  /api/approval/audiensi`)
   console.log(`   - PUT  /api/approval/agenda/:letterId`)
   console.log(`   - GET  /api/approval/stats`)
   console.log(`   - GET  /api/approval/health`)
+  
+  console.log(`\n🔔 Notifications (Staff):`)
   console.log(`   - GET  /api/notifications/staff`)
   console.log(`   - PUT  /api/notifications/:id/read`)
   console.log(`   - PUT  /api/notifications/mark-all-read`)
   console.log(`   - GET  /api/notifications/stats`)
+  
+  console.log(`\n🏥 System:`)
+  console.log(`   - GET  /api/health`)
+  console.log(`   - GET  /api`)
   
   console.log(`\n✨ Ready to handle requests!\n`)
 })
