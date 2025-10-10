@@ -28,6 +28,8 @@ import KetuaDashboard from "./pages/Ketua/KetuaDashboard";
 import ApprovalCenter from "./pages/Ketua/ApprovalCenter/ApprovalCenter";
 import ApprovalUndangan from "./pages/Ketua/ApprovalCenter/ApprovalUndangan";
 import ApprovalAudiensi from "./pages/Ketua/ApprovalCenter/ApprovalAudiensi";
+// import ForgotPassword from './pages/ForgotPassword'
+import ForgotPassword from './components/ForgotPassword'
 
 // TAMBAHKAN INI: Import ProposalList untuk Ketua
 import KetuaProposalList from "./pages/Ketua/Proposal/ProposalList";
@@ -252,6 +254,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* Reports */}
         <Route

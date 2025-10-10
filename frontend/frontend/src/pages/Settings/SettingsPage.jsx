@@ -6,7 +6,6 @@ const SettingsPage = () => {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('profile')
   
-  // Password state
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -21,25 +20,13 @@ const SettingsPage = () => {
     confirm: false
   })
 
-  // Profile state
-  const [profileData, setProfileData] = useState({
-    name: user?.name || '',
-    email: user?.email || ''
-  })
-  const [profileError, setProfileError] = useState('')
-  const [profileSuccess, setProfileSuccess] = useState('')
-  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
-
-  // Theme state
   const [selectedTheme, setSelectedTheme] = useState(() => {
     return localStorage.getItem('theme') || 'terang'
   })
 
-  // Backup state
   const [isBackingUp, setIsBackingUp] = useState(false)
   const [backupMessage, setBackupMessage] = useState('')
 
-  // Apply theme on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'terang'
     setSelectedTheme(savedTheme)
@@ -72,14 +59,14 @@ const SettingsPage = () => {
     } else if (savedTheme === 'lucu') {
       style.textContent = `
         body {
-          background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 50%, #fbcfe8 100%) !important;
+          background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #f9a8d4 100%) !important;
         }
         .main-content, [style*="background: #f8fafc"], [style*="background: white"] {
-          background: rgba(254, 243, 199, 0.7) !important;
+          background: rgba(252, 231, 243, 0.8) !important;
           backdrop-filter: blur(10px) !important;
         }
         h1, h2, h3, h4, h5, h6 {
-          background: linear-gradient(135deg, #ec4899, #8b5cf6, #3b82f6) !important;
+          background: linear-gradient(135deg, #ec4899, #f472b6, #fb7185) !important;
           -webkit-background-clip: text !important;
           -webkit-text-fill-color: transparent !important;
           font-weight: 800 !important;
@@ -96,7 +83,6 @@ const SettingsPage = () => {
     { id: 'security', label: 'Keamanan', icon: '🔒' }
   ]
 
-  // Validate password
   const validatePassword = (password) => {
     if (password.length < 8) {
       return 'Password minimal 8 karakter'
@@ -113,65 +99,13 @@ const SettingsPage = () => {
     return null
   }
 
-  // Handle profile update
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault()
-    setProfileError('')
-    setProfileSuccess('')
-
-    // Validasi input
-    if (!profileData.name || !profileData.email) {
-      setProfileError('Nama dan email harus diisi')
-      return
-    }
-
-    // Validasi email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(profileData.email)) {
-      setProfileError('Format email tidak valid')
-      return
-    }
-
-    setIsUpdatingProfile(true)
-
-    try {
-      const response = await fetch('/api/users/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          name: profileData.name,
-          email: profileData.email
-        })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Gagal mengupdate profile')
-      }
-
-      setProfileSuccess('Profile berhasil diupdate!')
-
-    } catch (error) {
-      setProfileError(error.message || 'Terjadi kesalahan saat mengupdate profile')
-    } finally {
-      setIsUpdatingProfile(false)
-    }
-  }
-
-  // Handle theme change
   const handleThemeChange = (theme) => {
     setSelectedTheme(theme)
     localStorage.setItem('theme', theme)
     
-    // Apply theme with custom CSS
     const style = document.createElement('style')
     style.id = 'admire-theme'
     
-    // Remove old theme
     const oldStyle = document.getElementById('admire-theme')
     if (oldStyle) oldStyle.remove()
     
@@ -198,36 +132,33 @@ const SettingsPage = () => {
     } else if (theme === 'lucu') {
       style.textContent = `
         body {
-          background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 50%, #fbcfe8 100%) !important;
+          background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #f9a8d4 100%) !important;
         }
         .main-content, [style*="background: #f8fafc"], [style*="background: white"] {
-          background: rgba(254, 243, 199, 0.7) !important;
+          background: rgba(252, 231, 243, 0.8) !important;
           backdrop-filter: blur(10px) !important;
         }
         h1, h2, h3, h4, h5, h6 {
-          background: linear-gradient(135deg, #ec4899, #8b5cf6, #3b82f6) !important;
+          background: linear-gradient(135deg, #ec4899, #f472b6, #fb7185) !important;
           -webkit-background-clip: text !important;
           -webkit-text-fill-color: transparent !important;
           font-weight: 800 !important;
         }
       `
     } else {
-      // Tema terang - remove all overrides
       if (oldStyle) oldStyle.remove()
       return
     }
     
     document.head.appendChild(style)
-    alert(`Tema ${theme === 'dark' ? '🌙 Gelap' : '🎨 Lucu'} berhasil diterapkan!`)
+    alert(`Tema ${theme === 'dark' ? '🌙 Gelap' : theme === 'lucu' ? '💖 Pink Lucu' : '☀️ Terang'} berhasil diterapkan!`)
   }
 
-  // Handle database backup - Export to Excel
   const handleDatabaseBackup = async () => {
     setIsBackingUp(true)
     setBackupMessage('')
 
     try {
-      // Fetch all letters data
       const response = await fetch('/api/letters?all=true', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -240,102 +171,84 @@ const SettingsPage = () => {
 
       const result = await response.json()
       
-      // Handle different response formats
       let letters = []
       
-      // Case 1: Direct array
       if (Array.isArray(result)) {
         letters = result
-      }
-      // Case 2: {data: {letters: []}} - YOUR API FORMAT
-      else if (result.data && result.data.letters && Array.isArray(result.data.letters)) {
+      } else if (result.data && result.data.letters && Array.isArray(result.data.letters)) {
         letters = result.data.letters
-      }
-      // Case 3: {data: []}
-      else if (result.data && Array.isArray(result.data)) {
+      } else if (result.data && Array.isArray(result.data)) {
         letters = result.data
-      }
-      // Case 4: {letters: []}
-      else if (result.letters && Array.isArray(result.letters)) {
+      } else if (result.letters && Array.isArray(result.letters)) {
         letters = result.letters
-      }
-      // Case 5: {success: true, data: []}
-      else if (result.success && Array.isArray(result.data)) {
+      } else if (result.success && Array.isArray(result.data)) {
         letters = result.data
+      } else {
+        throw new Error('Format data tidak valid')
       }
-      else {
-        console.error('Cannot find letters array in response:', result)
-        throw new Error('Format data tidak valid - struktur data tidak sesuai')
-      }
-
-      console.log('Letters found:', letters.length)
 
       if (letters.length === 0) {
         throw new Error('Tidak ada data untuk di-backup')
       }
 
-      // Dynamically import xlsx
       const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs')
 
-      // Prepare data for Excel
       const excelData = letters.map((letter, index) => ({
         'No': index + 1,
+        'ID': letter.id || '-',
+        'Jenis': letter.jenis || '-',
+        'No Disposisi': letter.no_disposisi || '-',
         'Nomor Surat': letter.nomor_surat || '-',
-        'Tanggal Surat': letter.tanggal_surat ? new Date(letter.tanggal_surat).toLocaleDateString('id-ID') : '-',
-        'Pengirim': letter.pengirim || '-',
+        'Asal Surat': letter.asal_surat || '-',
         'Perihal': letter.perihal || '-',
-        'Kategori': letter.kategori || '-',
+        'Tanggal Terima': letter.tanggal_terima ? new Date(letter.tanggal_terima).toLocaleDateString('id-ID') : '-',
+        'Tanggal Surat': letter.tanggal_surat ? new Date(letter.tanggal_surat).toLocaleDateString('id-ID') : '-',
+        'Uraian': letter.uraian || '-',
+        'Keterangan': letter.keterangan || '-',
+        'Label': letter.label || '-',
         'Status': letter.status || '-',
-        'Tanggal Diterima': letter.created_at ? new Date(letter.created_at).toLocaleDateString('id-ID') : '-'
+        'Created By': letter.created_by || '-',
+        'Created At': letter.created_at ? new Date(letter.created_at).toLocaleString('id-ID') : '-',
+        'Updated At': letter.updated_at ? new Date(letter.updated_at).toLocaleString('id-ID') : '-',
+        'File Path': letter.file_path || '-',
+        'File Surat': letter.file_surat || '-',
+        'File Surat Name': letter.file_surat_name || '-',
+        'File Surat Size': letter.file_surat_size || '-',
+        'Disposisi File Path': letter.disposisi_file_path || '-',
+        'Disposisi Generated At': letter.disposisi_generated_at ? new Date(letter.disposisi_generated_at).toLocaleString('id-ID') : '-'
       }))
 
-      // Create workbook and worksheet
       const wb = XLSX.utils.book_new()
       const ws = XLSX.utils.json_to_sheet(excelData)
 
-      // Set column widths
       ws['!cols'] = [
-        { wch: 5 },  // No
-        { wch: 20 }, // Nomor Surat
-        { wch: 15 }, // Tanggal Surat
-        { wch: 30 }, // Pengirim
-        { wch: 40 }, // Perihal
-        { wch: 15 }, // Kategori
-        { wch: 15 }, // Status
-        { wch: 15 }  // Tanggal Diterima
+        { wch: 5 }, { wch: 10 }, { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 30 },
+        { wch: 40 }, { wch: 15 }, { wch: 15 }, { wch: 40 }, { wch: 30 }, { wch: 15 },
+        { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 30 },
+        { wch: 30 }, { wch: 15 }, { wch: 30 }, { wch: 20 }
       ]
 
-      // Add worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, 'Data Surat')
 
-      // Generate filename with timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
       const filename = `ADMIRE_Backup_${timestamp}.xlsx`
 
-      // Write and download
       XLSX.writeFile(wb, filename)
 
       setBackupMessage(`✅ Berhasil backup ${letters.length} data surat ke file Excel!`)
 
     } catch (error) {
-      console.error('Backup error:', error)
       setBackupMessage('❌ Gagal melakukan backup: ' + error.message)
     } finally {
       setIsBackingUp(false)
-      
-      // Clear message after 5 seconds
-      setTimeout(() => {
-        setBackupMessage('')
-      }, 5000)
+      setTimeout(() => setBackupMessage(''), 5000)
     }
   }
 
-  // Handle password change
   const handlePasswordChange = async () => {
     setPasswordError('')
     setPasswordSuccess('')
 
-    // Validation
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
       setPasswordError('Semua field harus diisi')
       return
@@ -385,7 +298,6 @@ const SettingsPage = () => {
         confirmPassword: ''
       })
 
-      // Optional: Auto logout after 2 seconds
       setTimeout(() => {
         localStorage.removeItem('token')
         window.location.href = '/login'
@@ -407,7 +319,6 @@ const SettingsPage = () => {
         width: '100%'
       }}>
         
-        {/* Header */}
         <div>
           <h1 style={{
             margin: '0 0 8px 0',
@@ -426,7 +337,6 @@ const SettingsPage = () => {
           </p>
         </div>
 
-        {/* Tab Navigation */}
         <div style={{
           background: 'white',
           borderRadius: '20px',
@@ -464,7 +374,6 @@ const SettingsPage = () => {
           ))}
         </div>
 
-        {/* Tab Content */}
         <div style={{
           background: 'white',
           borderRadius: '20px',
@@ -473,205 +382,226 @@ const SettingsPage = () => {
           minHeight: '400px'
         }}>
           
-          {/* PROFILE TAB */}
           {activeTab === 'profile' && (
-            <div style={{ display: 'grid', gap: '24px' }}>
-              <h2 style={{
-                margin: '0 0 16px 0',
-                fontSize: '24px',
-                fontWeight: '700',
-                color: '#1a202c'
-              }}>
-                Informasi Profil
-              </h2>
-
-              {/* Alert Messages */}
-              {profileError && (
+            <div style={{ display: 'grid', gap: '32px' }}>
+              <div style={{ textAlign: 'center' }}>
                 <div style={{
-                  background: '#fee2e2',
-                  border: '1px solid #fca5a5',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
+                  fontSize: '80px',
+                  marginBottom: '16px',
+                  animation: 'bounce 2s infinite'
                 }}>
-                  <span style={{ fontSize: '24px' }}>⚠️</span>
-                  <span style={{ color: '#dc2626', fontSize: '14px', fontWeight: '500' }}>
-                    {profileError}
-                  </span>
+                  🏛️
                 </div>
-              )}
+                <h2 style={{
+                  margin: '0 0 8px 0',
+                  fontSize: '28px',
+                  fontWeight: '700',
+                  background: 'linear-gradient(135deg, #ec4899, #f472b6)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  Sekretariat Ketua DPD RI
+                </h2>
+              </div>
 
-              {profileSuccess && (
+              <div style={{ display: 'grid', gap: '20px' }}>
                 <div style={{
-                  background: '#d1fae5',
-                  border: '1px solid #6ee7b7',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
+                  background: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)',
+                  borderRadius: '24px',
+                  padding: '32px',
+                  border: '3px solid #f9a8d4',
+                  boxShadow: '0 8px 32px rgba(236, 72, 153, 0.15)',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}>
-                  <span style={{ fontSize: '24px' }}>✅</span>
-                  <span style={{ color: '#059669', fontSize: '14px', fontWeight: '500' }}>
-                    {profileSuccess}
-                  </span>
+                  <div style={{
+                    position: 'absolute',
+                    top: '-20px',
+                    right: '-20px',
+                    fontSize: '120px',
+                    opacity: '0.1',
+                    transform: 'rotate(-15deg)'
+                  }}>
+                    📝
+                  </div>
+                  
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '16px',
+                      marginBottom: '24px'
+                    }}>
+                      <div style={{
+                        width: '60px',
+                        height: '60px',
+                        background: 'linear-gradient(135deg, #ec4899, #f472b6)',
+                        borderRadius: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '32px',
+                        boxShadow: '0 4px 16px rgba(236, 72, 153, 0.3)'
+                      }}>
+                        🏢
+                      </div>
+                      <div>
+                        <h3 style={{
+                          margin: '0 0 4px 0',
+                          fontSize: '20px',
+                          fontWeight: '700',
+                          color: '#ec4899'
+                        }}>
+                          Nama Organisasi
+                        </h3>
+                        <p style={{
+                          margin: 0,
+                          fontSize: '14px',
+                          color: '#db2777',
+                          fontWeight: '500'
+                        }}>
+                          Informasi resmi instansi
+                        </p>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      background: 'white',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      border: '2px solid #f9a8d4'
+                    }}>
+                      <p style={{
+                        margin: 0,
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        color: '#1a202c',
+                        lineHeight: '1.6'
+                      }}>
+                        Sekretariat Ketua DPD RI
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                <div style={{
+                  background: 'linear-gradient(135deg, #ddd6fe 0%, #e9d5ff 100%)',
+                  borderRadius: '24px',
+                  padding: '32px',
+                  border: '3px solid #c4b5fd',
+                  boxShadow: '0 8px 32px rgba(167, 139, 250, 0.15)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    top: '-20px',
+                    right: '-20px',
+                    fontSize: '120px',
+                    opacity: '0.1',
+                    transform: 'rotate(15deg)'
+                  }}>
+                    ✉️
+                  </div>
+                  
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '16px',
+                      marginBottom: '24px'
+                    }}>
+                      <div style={{
+                        width: '60px',
+                        height: '60px',
+                        background: 'linear-gradient(135deg, #a78bfa, #c084fc)',
+                        borderRadius: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '32px',
+                        boxShadow: '0 4px 16px rgba(167, 139, 250, 0.3)'
+                      }}>
+                        📧
+                      </div>
+                      <div>
+                        <h3 style={{
+                          margin: '0 0 4px 0',
+                          fontSize: '20px',
+                          fontWeight: '700',
+                          color: '#7c3aed'
+                        }}>
+                          Email Resmi
+                        </h3>
+                        <p style={{
+                          margin: 0,
+                          fontSize: '14px',
+                          color: '#6d28d9',
+                          fontWeight: '500'
+                        }}>
+                          Kontak komunikasi
+                        </p>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      background: 'white',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      border: '2px solid #c4b5fd'
+                    }}>
+                      <p style={{
+                        margin: 0,
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        color: '#1a202c',
+                        wordBreak: 'break-all'
+                      }}>
+                        setketua@dpd.go.id
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: '20px'
+                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                borderRadius: '24px',
+                padding: '32px',
+                border: '3px dashed #fbbf24',
+                textAlign: 'center'
               }}>
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: '8px'
-                  }}>
-                    Nama Lengkap <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={profileData.name}
-                    onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                    disabled={isUpdatingProfile}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                  />
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>
+                  ⭐✨🌟
                 </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: '8px'
-                  }}>
-                    Email <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={profileData.email}
-                    onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                    disabled={isUpdatingProfile}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: '8px'
-                  }}>
-                    Role
-                  </label>
-                  <input
-                    type="text"
-                    value={user?.role}
-                    disabled
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      background: '#f8fafc',
-                      color: '#64748b',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
+                <h3 style={{
+                  margin: '0 0 8px 0',
+                  fontSize: '20px',
+                  fontWeight: '700',
+                  color: '#d97706'
+                }}>
+                  Sistem Manajemen Surat Digital
+                </h3>
+                <p style={{
+                  margin: 0,
+                  fontSize: '14px',
+                  color: '#92400e',
+                  fontWeight: '500'
+                }}>
+                  ADMIRE - Aplikasi Digital Manajemen Informasi & Rekam Elektronik
+                </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                <button
-                  onClick={handleProfileUpdate}
-                  disabled={isUpdatingProfile}
-                  style={{
-                    background: isUpdatingProfile 
-                      ? '#94a3b8' 
-                      : 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '12px 24px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: isUpdatingProfile ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
-                >
-                  {isUpdatingProfile ? (
-                    <>
-                      <span style={{
-                        width: '16px',
-                        height: '16px',
-                        border: '2px solid white',
-                        borderTopColor: 'transparent',
-                        borderRadius: '50%',
-                        animation: 'spin 0.6s linear infinite'
-                      }}></span>
-                      Menyimpan...
-                    </>
-                  ) : (
-                    'Simpan Perubahan'
-                  )}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setProfileData({
-                      name: user?.name || '',
-                      email: user?.email || ''
-                    })
-                    setProfileError('')
-                    setProfileSuccess('')
-                  }}
-                  disabled={isUpdatingProfile}
-                  style={{
-                    background: 'white',
-                    color: '#64748b',
-                    border: '2px solid #e5e7eb',
-                    borderRadius: '12px',
-                    padding: '12px 24px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: isUpdatingProfile ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  Reset
-                </button>
-              </div>
+              <style>{`
+                @keyframes bounce {
+                  0%, 100% { transform: translateY(0); }
+                  50% { transform: translateY(-20px); }
+                }
+              `}</style>
             </div>
           )}
 
-          {/* SYSTEM TAB */}
           {activeTab === 'system' && (
             <div>
               <h2 style={{
@@ -683,11 +613,7 @@ const SettingsPage = () => {
                 Pengaturan Sistem
               </h2>
               
-              <div style={{
-                display: 'grid',
-                gap: '20px'
-              }}>
-                {/* Theme Selector */}
+              <div style={{ display: 'grid', gap: '20px' }}>
                 <div style={{
                   background: '#f8fafc',
                   padding: '24px',
@@ -714,7 +640,6 @@ const SettingsPage = () => {
                     gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                     gap: '12px'
                   }}>
-                    {/* Tema Terang */}
                     <button
                       onClick={() => handleThemeChange('terang')}
                       style={{
@@ -739,17 +664,12 @@ const SettingsPage = () => {
                         Terang
                       </div>
                       {selectedTheme === 'terang' && (
-                        <div style={{
-                          fontSize: '12px',
-                          color: '#0ea5e9',
-                          fontWeight: '500'
-                        }}>
+                        <div style={{ fontSize: '12px', color: '#0ea5e9', fontWeight: '500' }}>
                           ✓ Aktif
                         </div>
                       )}
                     </button>
 
-                    {/* Tema Gelap */}
                     <button
                       onClick={() => handleThemeChange('dark')}
                       style={{
@@ -774,17 +694,12 @@ const SettingsPage = () => {
                         Gelap
                       </div>
                       {selectedTheme === 'dark' && (
-                        <div style={{
-                          fontSize: '12px',
-                          color: '#6366f1',
-                          fontWeight: '500'
-                        }}>
+                        <div style={{ fontSize: '12px', color: '#6366f1', fontWeight: '500' }}>
                           ✓ Aktif
                         </div>
                       )}
                     </button>
 
-                    {/* Tema Lucu */}
                     <button
                       onClick={() => handleThemeChange('lucu')}
                       style={{
@@ -800,20 +715,16 @@ const SettingsPage = () => {
                         gap: '8px'
                       }}
                     >
-                      <div style={{ fontSize: '32px' }}>🎨</div>
+                      <div style={{ fontSize: '32px' }}>💖</div>
                       <div style={{
                         fontSize: '14px',
                         fontWeight: '600',
                         color: selectedTheme === 'lucu' ? '#ec4899' : '#374151'
                       }}>
-                        Lucu
+                        Pink Lucu
                       </div>
                       {selectedTheme === 'lucu' && (
-                        <div style={{
-                          fontSize: '12px',
-                          color: '#ec4899',
-                          fontWeight: '500'
-                        }}>
+                        <div style={{ fontSize: '12px', color: '#ec4899', fontWeight: '500' }}>
                           ✓ Aktif
                         </div>
                       )}
@@ -821,7 +732,6 @@ const SettingsPage = () => {
                   </div>
                 </div>
 
-                {/* Backup Database */}
                 <div style={{
                   background: '#f8fafc',
                   padding: '24px',
@@ -908,7 +818,6 @@ const SettingsPage = () => {
             </div>
           )}
 
-          {/* SECURITY TAB */}
           {activeTab === 'security' && (
             <div>
               <h2 style={{
@@ -921,7 +830,6 @@ const SettingsPage = () => {
               </h2>
 
               <div style={{ maxWidth: '600px' }}>
-                {/* Alert Messages */}
                 {passwordError && (
                   <div style={{
                     background: '#fee2e2',
@@ -959,7 +867,6 @@ const SettingsPage = () => {
                 )}
 
                 <div style={{ display: 'grid', gap: '24px' }}>
-                  {/* Current Password */}
                   <div>
                     <label style={{
                       display: 'block',
@@ -1009,7 +916,6 @@ const SettingsPage = () => {
                     </div>
                   </div>
 
-                  {/* New Password */}
                   <div>
                     <label style={{
                       display: 'block',
@@ -1066,7 +972,6 @@ const SettingsPage = () => {
                     </p>
                   </div>
 
-                  {/* Confirm Password */}
                   <div>
                     <label style={{
                       display: 'block',
@@ -1116,7 +1021,6 @@ const SettingsPage = () => {
                     </div>
                   </div>
 
-                  {/* Submit Button */}
                   <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                     <button
                       onClick={handlePasswordChange}
@@ -1186,7 +1090,6 @@ const SettingsPage = () => {
                 </div>
               </div>
 
-              {/* Security Tips */}
               <div style={{
                 marginTop: '40px',
                 background: '#f8fafc',

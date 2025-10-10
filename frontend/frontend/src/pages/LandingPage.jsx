@@ -25,7 +25,6 @@ const LandingPage = () => {
         backdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(226, 232, 240, 0.5)'
       }}>
-        {/* Logo */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -58,7 +57,6 @@ const LandingPage = () => {
           </div>
         </div>
 
-        {/* Navigation Menu */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -101,7 +99,6 @@ const LandingPage = () => {
           paddingRight: '4rem'
         }}>
           
-          {/* Badge */}
           <div style={{
             background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%)',
             border: '1px solid rgba(14, 165, 233, 0.2)',
@@ -137,7 +134,7 @@ const LandingPage = () => {
             }}>
               Persuratan Sekretariat Ketua DPD RI
             </span>
-          </h1>x
+          </h1>
 
           <p style={{
             fontSize: '1.25rem',
@@ -151,7 +148,6 @@ const LandingPage = () => {
             Solusi inovatif untuk mengelola surat, proposal, dan agenda secara digital di Sekretariat Ketua DPD RI.
           </p>
 
-          {/* CTA Buttons */}
           <div style={{
             display: 'flex',
             gap: '1rem',
@@ -182,47 +178,10 @@ const LandingPage = () => {
             >
               Akses Sistem
             </button>
-
-            <button style={{
-              background: 'transparent',
-              color: '#64748b',
-              border: '2px solid #e2e8f0',
-              padding: '1rem 2rem',
-              borderRadius: '12px',
-              fontSize: '1rem',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}>
-              <div style={{
-                width: '16px',
-                height: '16px',
-                backgroundColor: '#0ea5e9',
-                borderRadius: '50%',
-                position: 'relative'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: '0',
-                  height: '0',
-                  borderLeft: '4px solid white',
-                  borderTop: '3px solid transparent',
-                  borderBottom: '3px solid transparent',
-                  marginLeft: '1px'
-                }}></div>
-              </div>
-              {/* See How It Works */}
-            </button>
           </div>
         </div>
 
-        {/* Right Illustration - ENLARGED */}
+        {/* Right Illustration - MODIFIED */}
         <div style={{
           flex: '1.3',
           display: 'flex',
@@ -232,7 +191,6 @@ const LandingPage = () => {
           padding: '0 2rem'
         }}>
           
-          {/* Main Card - BIGGER */}
           <div style={{
             position: 'relative',
             zIndex: 2,
@@ -250,7 +208,6 @@ const LandingPage = () => {
               boxShadow: '0 25px 50px rgba(14, 165, 233, 0.4)'
             }}>
               
-              {/* Card Content */}
               <div style={{
                 position: 'relative',
                 zIndex: 2
@@ -272,42 +229,24 @@ const LandingPage = () => {
                 
                 <div style={{
                   display: 'flex',
-                  justifyContent: 'space-between',
+                  justifyContent: 'center',
                   alignItems: 'center'
                 }}>
-                  <div>
-                    <p style={{
-                      margin: '0 0 0.5rem 0',
-                      fontSize: '0.875rem',
-                      opacity: 0.8
-                    }}>
-                      Active Users
-                    </p>
-                    <p style={{
-                      margin: 0,
-                      fontSize: '1.75rem',
-                      fontWeight: '800'
-                    }}>
-                      250+
-                    </p>
-                  </div>
-                  
                   <div style={{
-                    width: '50px',
-                    height: '50px',
+                    width: '80px',
+                    height: '80px',
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    borderRadius: '12px',
+                    borderRadius: '16px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1.5rem'
+                    fontSize: '2.5rem'
                   }}>
                     🏛️
                   </div>
                 </div>
               </div>
 
-              {/* Decorative Elements - BIGGER */}
               <div style={{
                 position: 'absolute',
                 top: '-30px',
@@ -330,7 +269,6 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* Floating Elements - BIGGER */}
           <div style={{
             position: 'absolute',
             top: '15%',
@@ -398,15 +336,14 @@ const LandingPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Why Choose Us Section - REDESIGNED WITH GRADIENT BACKGROUND */}
+      {/* Struktur Organisasi Section - REDESIGNED MODERN & CREATIVE */}
       <div style={{
         padding: '6rem 4rem',
         background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
         position: 'relative',
         overflow: 'hidden'
       }}>
-        {/* Floating Decorative Shapes */}
+        {/* Animated Background Elements */}
         <div style={{
           position: 'absolute',
           top: '10%',
@@ -430,24 +367,12 @@ const LandingPage = () => {
         }}></div>
         
         <div style={{
-          position: 'absolute',
-          bottom: '20%',
-          left: '15%',
-          width: '60px',
-          height: '60px',
-          background: 'rgba(255, 255, 255, 0.06)',
-          borderRadius: '20px',
-          transform: 'rotate(45deg)',
-          animation: 'float 5s ease-in-out infinite 1s'
-        }}></div>
-        
-        <div style={{
-          maxWidth: '1200px',
+          maxWidth: '1400px',
           margin: '0 auto',
           position: 'relative',
           zIndex: 2
         }}>
-          {/* Header Section */}
+          {/* Header */}
           <div style={{
             textAlign: 'center',
             marginBottom: '4rem'
@@ -466,7 +391,7 @@ const LandingPage = () => {
                 fontSize: '0.875rem',
                 fontWeight: '600'
               }}>
-                ✨ Keunggulan Sistem
+                👥 Tim Kami
               </span>
             </div>
             
@@ -479,7 +404,7 @@ const LandingPage = () => {
               lineHeight: '1.1',
               textShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
             }}>
-              Mengapa Memilih
+              Struktur Organisasi
               <br />
               <span style={{
                 background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
@@ -487,111 +412,351 @@ const LandingPage = () => {
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
               }}>
-                ADMIRE?
+                Sekretariat Ketua DPD RI
               </span>
             </h2>
-            
-            <p style={{
-              fontSize: '1.25rem',
-              color: 'rgba(255, 255, 255, 0.9)',
-              maxWidth: '700px',
-              margin: '0 auto',
-              lineHeight: '1.6'
-            }}>
-              Sistem terintegrasi yang dirancang khusus untuk efisiensi operasional Sekretariat Ketua DPD RI
-            </p>
           </div>
 
-          {/* Features Grid */}
+          {/* Kepala Bagian - TOP CARD */}
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-            gap: '2rem'
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: '3rem'
           }}>
-            {[
-              {
-                icon: '⚡',
-                title: 'Proses Cepat',
-                description: 'Otomatisasi proses persetujuan dan pengelolaan surat untuk efisiensi maksimal'
-              },
-              {
-                icon: '🔒',
-                title: '100% Aman',
-                description: 'Keamanan data tingkat enterprise dengan enkripsi dan backup otomatis'
-              },
-              {
-                icon: '📱',
-                title: 'Mudah Digunakan',
-                description: 'Interface intuitif yang dapat diakses dari berbagai perangkat dan platform'
-              }
-            ].map((feature, index) => (
-              <div key={index} style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(20px)',
-                borderRadius: '24px',
-                padding: '3rem 2.5rem',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                transition: 'all 0.4s ease',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-10px)'
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)'
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
-              }}
-              >
-                {/* Shine Effect */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.25)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '24px',
+              padding: '2.5rem 3rem',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              maxWidth: '450px',
+              width: '100%',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              {/* Shine Effect */}
+              <div style={{
+                position: 'absolute',
+                top: '-50%',
+                left: '-50%',
+                width: '200%',
+                height: '200%',
+                background: 'linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%)',
+                transform: 'rotate(45deg)'
+              }}></div>
+              
+              <div style={{ position: 'relative', zIndex: 2 }}>
+                {/* Photo Placeholder */}
                 <div style={{
-                  position: 'absolute',
-                  top: '-50%',
-                  left: '-50%',
-                  width: '200%',
-                  height: '200%',
-                  background: 'linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%)',
-                  transform: 'rotate(45deg)',
-                  transition: 'all 0.6s ease'
-                }}></div>
-                
-                {/* Icon */}
-                <div style={{
-                  width: '80px',
-                  height: '80px',
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  borderRadius: '20px',
+                  width: '120px',
+                  height: '120px',
+                  background: 'linear-gradient(135deg, #fff 0%, #f0f0f0 100%)',
+                  borderRadius: '50%',
+                  margin: '0 auto 1.5rem',
+                  border: '4px solid rgba(255, 255, 255, 0.5)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '2.5rem',
-                  marginBottom: '2rem',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)'
+                  fontSize: '3rem',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)'
                 }}>
-                  {feature.icon}
+                  👤
+                </div>
+                
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  borderRadius: '12px',
+                  padding: '0.5rem 1rem',
+                  marginBottom: '1rem',
+                  textAlign: 'center'
+                }}>
+                  <p style={{
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    margin: 0,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}>
+                    Kepala Bagian Sekretariat Ketua DPD RI
+                  </p>
                 </div>
                 
                 <h3 style={{
-                  fontSize: '1.75rem',
+                  fontSize: '1.5rem',
                   fontWeight: '700',
                   color: 'white',
-                  marginBottom: '1rem',
+                  margin: '0 0 0.5rem 0',
+                  textAlign: 'center',
                   letterSpacing: '-0.025em'
                 }}>
-                  {feature.title}
+                  MOHAMMAD IKHSAN DEDY HASIBUAN
                 </h3>
                 
                 <p style={{
-                  fontSize: '1rem',
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  lineHeight: '1.6',
-                  margin: 0
+                  fontSize: '0.875rem',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  textAlign: 'center',
+                  margin: 0,
+                  fontWeight: '500'
                 }}>
-                  {feature.description}
+                  NIP: 197305251993031001
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Kepala Sub Bagian - 2 CARDS */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '2rem',
+            marginBottom: '3rem',
+            maxWidth: '1000px',
+            margin: '0 auto 3rem'
+          }}>
+            {/* Kepala Sub Bag 1 */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '20px',
+              padding: '2rem',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)'
+              e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 0, 0, 0.2)'
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+            >
+              <div style={{
+                width: '90px',
+                height: '90px',
+                background: 'linear-gradient(135deg, #fff 0%, #f0f0f0 100%)',
+                borderRadius: '50%',
+                margin: '0 auto 1.5rem',
+                border: '3px solid rgba(255, 255, 255, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2.5rem'
+              }}>
+                👤
+              </div>
+              
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                borderRadius: '8px',
+                padding: '0.4rem 0.8rem',
+                marginBottom: '1rem',
+                textAlign: 'center'
+              }}>
+                <p style={{
+                  color: 'white',
+                  fontSize: '0.7rem',
+                  fontWeight: '600',
+                  margin: 0,
+                  textTransform: 'uppercase'
+                }}>
+                  Kepala Sub Bagian Tata Usaha
+                </p>
+              </div>
+              
+              <h4 style={{
+                fontSize: '1.25rem',
+                fontWeight: '700',
+                color: 'white',
+                margin: '0 0 0.5rem 0',
+                textAlign: 'center'
+              }}>
+                DIYAH TRI IRAWATI
+              </h4>
+              
+              <p style={{
+                fontSize: '0.8rem',
+                color: 'rgba(255, 255, 255, 0.8)',
+                textAlign: 'center',
+                margin: 0
+              }}>
+                NIP: 198101172009112001
+              </p>
+            </div>
+
+            {/* Kepala Sub Bag 2 */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '20px',
+              padding: '2rem',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)'
+              e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 0, 0, 0.2)'
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+            >
+              <div style={{
+                width: '90px',
+                height: '90px',
+                background: 'linear-gradient(135deg, #fff 0%, #f0f0f0 100%)',
+                borderRadius: '50%',
+                margin: '0 auto 1.5rem',
+                border: '3px solid rgba(255, 255, 255, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2.5rem'
+              }}>
+                👤
+              </div>
+              
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                borderRadius: '8px',
+                padding: '0.4rem 0.8rem',
+                marginBottom: '1rem',
+                textAlign: 'center'
+              }}>
+                <p style={{
+                  color: 'white',
+                  fontSize: '0.7rem',
+                  fontWeight: '600',
+                  margin: 0,
+                  textTransform: 'uppercase'
+                }}>
+                  Kepala Sub Bagian Penyiapan Materi
+                </p>
+              </div>
+              
+              <h4 style={{
+                fontSize: '1.25rem',
+                fontWeight: '700',
+                color: 'white',
+                margin: '0 0 0.5rem 0',
+                textAlign: 'center'
+              }}>
+                GITA PRISSANDI
+              </h4>
+              
+              <p style={{
+                fontSize: '0.8rem',
+                color: 'rgba(255, 255, 255, 0.8)',
+                textAlign: 'center',
+                margin: 0
+              }}>
+                NIP: 198411232008011001
+              </p>
+            </div>
+          </div>
+
+          {/* STAF Section Header */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '2.5rem'
+          }}>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '20px',
+              padding: '0.75rem 2rem',
+              display: 'inline-block'
+            }}>
+              <span style={{
+                color: 'white',
+                fontSize: '1.25rem',
+                fontWeight: '700',
+                letterSpacing: '2px'
+              }}>
+                ⭐ STAF PELAKSANA
+              </span>
+            </div>
+          </div>
+
+          {/* STAF Grid - 4 columns modern cards */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '1.5rem'
+          }}>
+            {[
+              { nama: 'FABBIOLA MAUREEN', nip: '198502172011012010' },
+              { nama: 'RAMA MAHESA', nip: '198505032015031002' },
+              { nama: 'ALFYANDA SHIRLEY', nip: '199804152022032011' },
+              { nama: 'NADIRA SWANDANI', nip: '199706062022032008' },
+              { nama: 'LINDA BR GINTING', nip: '199601032022032012' },
+              { nama: 'SIGIT KAMSENO', nip: '198208272007101002' },
+              { nama: 'GIGIH SIBADIO', nip: '199009222025211013' },
+              { nama: 'PAHRUL', nip: '200107282025061004' },
+              { nama: 'AZIS DIYANTO PRAMUNDITO', nip: '200005272025061004' },
+              { nama: 'BAIQ TIARA LOVYSAMINA ZAHIR', nip: '199708152025062004' },
+              { nama: 'LEONARD RODRIQUE OME', nip: '200104062025061005' },
+              { nama: 'DIDIN ARDIANSYAH PRAYOGO', nip: '200105232025061008' }
+            ].map((staf, index) => (
+              <div key={index} style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(15px)',
+                borderRadius: '16px',
+                padding: '1.5rem 1rem',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                transition: 'all 0.3s ease',
+                textAlign: 'center'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)'
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1)'
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
+              }}
+              >
+                <div style={{
+                  width: '70px',
+                  height: '70px',
+                  background: 'linear-gradient(135deg, #fff 0%, #e0e0e0 100%)',
+                  borderRadius: '50%',
+                  margin: '0 auto 1rem',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '2rem'
+                }}>
+                  👤
+                </div>
+                
+                <h5 style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '700',
+                  color: 'white',
+                  margin: '0 0 0.5rem 0',
+                  lineHeight: '1.3'
+                }}>
+                  {staf.nama}
+                </h5>
+                
+                <p style={{
+                  fontSize: '0.7rem',
+                  color: 'rgba(255, 255, 255, 0.75)',
+                  margin: 0,
+                  fontFamily: 'monospace'
+                }}>
+                  {staf.nip}
                 </p>
               </div>
             ))}
@@ -599,7 +764,7 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* CTA Section - CHANGED TO GRAY BACKGROUND */}
+      {/* CTA Section - MODIFIED */}
       <div style={{
         padding: '5rem 4rem',
         background: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 50%, #94a3b8 100%)',
@@ -608,7 +773,6 @@ const LandingPage = () => {
         position: 'relative',
         overflow: 'hidden'
       }}>
-        {/* Background Pattern */}
         <div style={{
           position: 'absolute',
           top: '0',
@@ -633,7 +797,7 @@ const LandingPage = () => {
             letterSpacing: '-0.025em',
             color: '#0f172a'
           }}>
-            Siap Menggunakan ADMIRE?
+            Siap Bergabung dengan ADMIRE?
           </h2>
           <p style={{
             fontSize: '1.25rem',
@@ -641,7 +805,7 @@ const LandingPage = () => {
             color: '#64748b',
             lineHeight: '1.6'
           }}>
-            Bergabunglah dengan digitalisasi terdepan DPD RI dan rasakan efisiensi yang sesungguhnya
+            Wujudkan transformasi digital dalam pengelolaan administrasi persuratan di Sekretariat Ketua DPD RI
           </p>
           <button
             onClick={handleLoginClick}
@@ -671,7 +835,7 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Footer - Developer Credits */}
+      {/* Footer */}
       <footer style={{
         padding: '3rem 4rem 2rem',
         backgroundColor: '#0f172a',
@@ -689,7 +853,7 @@ const LandingPage = () => {
             margin: 0,
             color: '#94a3b8'
           }}>
-            Dikembangkan oleh <strong style={{ color: '#e2e8f0' }}>Pahrul</strong> CPNS Penata Kelola Sistem dan Teknologi Informasi dan Bagian Pengelolaan Sistem Informasi Biro Sindok Setjen <strong style={{ color: '#0ea5e9' }}>DPD RI</strong>
+            Dikembangkan oleh <strong style={{ color: '#e2e8f0' }}>Pahrul</strong> CPNS Penata Kelola Sistem dan Teknologi Informasi - Bagian Pengelolaan Sistem Informasi Biro Sindok Setjen <strong style={{ color: '#0ea5e9' }}>DPD RI</strong>
           </p>
         </div>
       </footer>
@@ -709,3 +873,5 @@ const LandingPage = () => {
 }
 
 export default LandingPage
+
+

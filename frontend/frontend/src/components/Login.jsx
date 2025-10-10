@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
 import LogoSetjen from '../assets/LogoSetjen.png'
 
@@ -11,17 +11,33 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [mounted, setMounted] = useState(false)
   
+  // Captcha state
+  const [captchaNum1, setCaptchaNum1] = useState(0)
+  const [captchaNum2, setCaptchaNum2] = useState(0)
+  const [captchaAnswer, setCaptchaAnswer] = useState('')
+  const [captchaError, setCaptchaError] = useState(false)
+  
   const { login, isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
 
+  const generateCaptcha = () => {
+    const num1 = Math.floor(Math.random() * 10) + 1
+    const num2 = Math.floor(Math.random() * 10) + 1
+    setCaptchaNum1(num1)
+    setCaptchaNum2(num2)
+    setCaptchaAnswer('')
+    setCaptchaError(false)
+  }
+
   useEffect(() => {
     setMounted(true)
-    // Redirect if already logged in - SMART REDIRECT
+    generateCaptcha()
+    
     if (isAuthenticated && user) {
       if (user.role === 'ketua' || user.role === 'admin') {
-        navigate('/dashboardKetua') // Updated redirect untuk ketua
+        navigate('/dashboardKetua')
       } else {
-        navigate('/dashboard') // Will show StafDashboard
+        navigate('/dashboard')
       }
     }
   }, [isAuthenticated, user, navigate])
@@ -30,6 +46,16 @@ const Login = () => {
     e.preventDefault()
     setLoading(true)
     setMessage('')
+    setCaptchaError(false)
+
+    const correctAnswer = captchaNum1 + captchaNum2
+    if (parseInt(captchaAnswer) !== correctAnswer) {
+      setCaptchaError(true)
+      setMessage('Captcha salah! Silakan coba lagi.')
+      setLoading(false)
+      generateCaptcha()
+      return
+    }
 
     try {
       const response = await fetch('http://localhost:4000/api/auth/login', {
@@ -46,22 +72,22 @@ const Login = () => {
         const userData = data.data.user
         setMessage(`Login berhasil! Selamat datang ${userData.name}`)
         
-        // Use the login function from useAuth
         login(userData, data.data.token)
         
-        // SMART REDIRECT based on role - UPDATED
         setTimeout(() => {
           if (userData.role === 'ketua' || userData.role === 'admin') {
-            navigate('/dashboardKetua') // Updated redirect untuk ketua
+            navigate('/dashboardKetua')
           } else {
-            navigate('/dashboard') // StafDashboard
+            navigate('/dashboard')
           }
         }, 1000)
       } else {
         setMessage(`${data.error.message}`)
+        generateCaptcha()
       }
     } catch (error) {
       setMessage('Koneksi ke server gagal')
+      generateCaptcha()
     } finally {
       setLoading(false)
     }
@@ -82,11 +108,11 @@ const Login = () => {
       padding: '20px'
     }}>
       
-      {/* Main container with border radius */}
+      {/* Main container - DISESUAIKAN UKURAN */}
       <div style={{
         width: '100%',
-        maxWidth: '1200px',
-        height: '700px',
+        maxWidth: '1300px',
+        height: '720px',
         display: 'flex',
         borderRadius: '32px',
         overflow: 'hidden',
@@ -96,18 +122,18 @@ const Login = () => {
         transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
         
-        {/* Left side */}
+        {/* Left side - 50% width */}
         <div style={{
-          flex: '1',
+          width: '50%',
           background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
-          color: 'white'
+          color: 'white',
+          padding: '60px 40px'
         }}>
-          {/* Floating decorative elements */}
           <div style={{
             position: 'absolute',
             top: '15%',
@@ -129,7 +155,6 @@ const Login = () => {
             animation: 'float 6s ease-in-out infinite reverse'
           }}></div>
           
-          {/* Logo area */}
           <div style={{
             width: '200px',
             height: '200px',
@@ -187,28 +212,11 @@ const Login = () => {
           }}>
             Sekretariat Jenderal DPD RI
           </p>
-
-          {/* Demo credentials info */}
-          <div style={{
-            position: 'absolute',
-            bottom: '30px',
-            left: '30px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            padding: '15px',
-            borderRadius: '12px',
-            backdropFilter: 'blur(10px)',
-            fontSize: '12px',
-            lineHeight: '1.4'
-          }}>
-            {/* <div style={{ fontWeight: '600', marginBottom: '8px' }}>🧪 Demo Accounts:</div> */}
-            {/* <div>👑 Ketua: ketua@test.com / password</div> */}
-            {/* <div>👤 Staff: staff@test.com / password</div> */}
-          </div>
         </div>
 
-        {/* Right side */}
+        {/* Right side - 50% width, PAS DENGAN KIRI */}
         <div style={{
-          flex: '1',
+          width: '50%',
           background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
           display: 'flex',
           alignItems: 'center',
@@ -216,19 +224,17 @@ const Login = () => {
           padding: '40px'
         }}>
           
-          {/* Form Container Box */}
           <div style={{
             width: '100%',
-            maxWidth: '420px',
+            maxWidth: '100%',
             background: 'white',
             borderRadius: '24px',
-            padding: '50px 45px',
+            padding: '45px 45px',
             boxShadow: '0 25px 50px rgba(0, 0, 0, 0.08), 0 15px 30px rgba(0, 0, 0, 0.05)',
             border: '1px solid rgba(226, 232, 240, 0.8)'
           }}>
             
-            {/* Header */}
-            <div style={{ marginBottom: '40px', textAlign: 'center' }}>
+            <div style={{ marginBottom: '32px', textAlign: 'center' }}>
               <h1 style={{
                 fontSize: '36px',
                 fontWeight: '700',
@@ -249,7 +255,7 @@ const Login = () => {
 
             <form onSubmit={handleLogin}>
               {/* Email Field */}
-              <div style={{ marginBottom: '24px' }}>
+              <div style={{ marginBottom: '20px' }}>
                 <label style={{
                   display: 'block',
                   fontSize: '15px',
@@ -267,7 +273,7 @@ const Login = () => {
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    padding: '16px 18px',
+                    padding: '14px 16px',
                     border: '2px solid #e2e8f0',
                     borderRadius: '12px',
                     fontSize: '16px',
@@ -292,7 +298,7 @@ const Login = () => {
               </div>
 
               {/* Password Field */}
-              <div style={{ marginBottom: '32px' }}>
+              <div style={{ marginBottom: '16px' }}>
                 <label style={{
                   display: 'block',
                   fontSize: '15px',
@@ -311,7 +317,7 @@ const Login = () => {
                     style={{
                       width: '100%',
                       boxSizing: 'border-box',
-                      padding: '16px 50px 16px 18px',
+                      padding: '14px 50px 14px 16px',
                       border: '2px solid #e2e8f0',
                       borderRadius: '12px',
                       fontSize: '16px',
@@ -353,6 +359,104 @@ const Login = () => {
                 </div>
               </div>
 
+              {/* Forgot Password Link */}
+              <div style={{ 
+                textAlign: 'right', 
+                marginBottom: '20px'
+              }}>
+                <Link 
+                  to="/forgot-password"
+                  style={{
+                    fontSize: '14px',
+                    color: '#0ea5e9',
+                    textDecoration: 'none',
+                    fontWeight: '600',
+                    transition: 'color 0.2s'
+                  }}
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+
+              {/* Captcha */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  color: '#0f172a',
+                  marginBottom: '10px'
+                }}>
+                  Security Check
+                </label>
+                <div style={{
+                  display: 'flex',
+                  gap: '10px',
+                  alignItems: 'center',
+                  marginBottom: '10px'
+                }}>
+                  <div style={{
+                    flex: 1,
+                    background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+                    padding: '14px',
+                    borderRadius: '12px',
+                    textAlign: 'center',
+                    border: captchaError ? '2px solid #ef4444' : '2px solid #e2e8f0',
+                    fontWeight: '700',
+                    fontSize: '20px',
+                    color: '#0f172a',
+                    userSelect: 'none'
+                  }}>
+                    {captchaNum1} + {captchaNum2} = ?
+                  </div>
+                  <button
+                    type="button"
+                    onClick={generateCaptcha}
+                    style={{
+                      padding: '14px',
+                      background: '#f1f5f9',
+                      border: '2px solid #e2e8f0',
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    🔄
+                  </button>
+                </div>
+                <input
+                  type="number"
+                  value={captchaAnswer}
+                  onChange={(e) => {
+                    setCaptchaAnswer(e.target.value)
+                    setCaptchaError(false)
+                  }}
+                  placeholder="Enter the answer"
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    padding: '14px 16px',
+                    border: captchaError ? '2px solid #ef4444' : '2px solid #e2e8f0',
+                    borderRadius: '12px',
+                    fontSize: '16px',
+                    outline: 'none',
+                    background: '#fafbfc'
+                  }}
+                  required
+                />
+                {captchaError && (
+                  <p style={{
+                    color: '#ef4444',
+                    fontSize: '13px',
+                    marginTop: '6px',
+                    fontWeight: '500'
+                  }}>
+                    ❌ Wrong answer! Please try again.
+                  </p>
+                )}
+              </div>
+
               {/* Sign In Button */}
               <button
                 type="submit"
@@ -360,7 +464,7 @@ const Login = () => {
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  padding: '18px',
+                  padding: '16px',
                   background: loading 
                     ? '#cbd5e0' 
                     : 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
@@ -371,7 +475,7 @@ const Login = () => {
                   fontWeight: '600',
                   cursor: loading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.3s ease',
-                  marginBottom: '24px',
+                  marginBottom: '18px',
                   letterSpacing: '0.5px'
                 }}
               >
@@ -394,7 +498,7 @@ const Login = () => {
               {/* Message */}
               {message && (
                 <div style={{
-                  padding: '16px',
+                  padding: '14px',
                   backgroundColor: message.includes('berhasil') ? '#ecfdf5' : '#fef2f2',
                   color: message.includes('berhasil') ? '#065f46' : '#dc2626',
                   borderRadius: '12px',
