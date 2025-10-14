@@ -108,7 +108,7 @@ const Login = () => {
       padding: '20px'
     }}>
       
-      {/* Main container - DISESUAIKAN UKURAN */}
+      {/* Main container */}
       <div style={{
         width: '100%',
         maxWidth: '1300px',
@@ -214,14 +214,14 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Right side - 50% width, PAS DENGAN KIRI */}
+        {/* Right side - 50% width, SPACING OPTIMAL */}
         <div style={{
           width: '50%',
           background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '40px'
+          padding: '45px 40px'
         }}>
           
           <div style={{
@@ -229,12 +229,12 @@ const Login = () => {
             maxWidth: '100%',
             background: 'white',
             borderRadius: '24px',
-            padding: '45px 45px',
+            padding: '40px 45px',
             boxShadow: '0 25px 50px rgba(0, 0, 0, 0.08), 0 15px 30px rgba(0, 0, 0, 0.05)',
             border: '1px solid rgba(226, 232, 240, 0.8)'
           }}>
             
-            <div style={{ marginBottom: '32px', textAlign: 'center' }}>
+            <div style={{ marginBottom: '28px', textAlign: 'center' }}>
               <h1 style={{
                 fontSize: '36px',
                 fontWeight: '700',
@@ -255,13 +255,13 @@ const Login = () => {
 
             <form onSubmit={handleLogin}>
               {/* Email Field */}
-              <div style={{ marginBottom: '20px' }}>
+              <div style={{ marginBottom: '18px' }}>
                 <label style={{
                   display: 'block',
                   fontSize: '15px',
                   fontWeight: '600',
                   color: '#0f172a',
-                  marginBottom: '10px'
+                  marginBottom: '9px'
                 }}>
                   Email
                 </label>
@@ -273,7 +273,7 @@ const Login = () => {
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    padding: '14px 16px',
+                    padding: '13px 16px',
                     border: '2px solid #e2e8f0',
                     borderRadius: '12px',
                     fontSize: '16px',
@@ -298,13 +298,13 @@ const Login = () => {
               </div>
 
               {/* Password Field */}
-              <div style={{ marginBottom: '16px' }}>
+              <div style={{ marginBottom: '14px' }}>
                 <label style={{
                   display: 'block',
                   fontSize: '15px',
                   fontWeight: '600',
                   color: '#0f172a',
-                  marginBottom: '10px'
+                  marginBottom: '9px'
                 }}>
                   Password
                 </label>
@@ -317,7 +317,7 @@ const Login = () => {
                     style={{
                       width: '100%',
                       boxSizing: 'border-box',
-                      padding: '14px 50px 14px 16px',
+                      padding: '13px 50px 13px 16px',
                       border: '2px solid #e2e8f0',
                       borderRadius: '12px',
                       fontSize: '16px',
@@ -362,7 +362,7 @@ const Login = () => {
               {/* Forgot Password Link */}
               <div style={{ 
                 textAlign: 'right', 
-                marginBottom: '20px'
+                marginBottom: '18px'
               }}>
                 <Link 
                   to="/forgot-password"
@@ -385,7 +385,7 @@ const Login = () => {
                   fontSize: '15px',
                   fontWeight: '600',
                   color: '#0f172a',
-                  marginBottom: '10px'
+                  marginBottom: '9px'
                 }}>
                   Security Check
                 </label>
@@ -398,7 +398,7 @@ const Login = () => {
                   <div style={{
                     flex: 1,
                     background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
-                    padding: '14px',
+                    padding: '13px',
                     borderRadius: '12px',
                     textAlign: 'center',
                     border: captchaError ? '2px solid #ef4444' : '2px solid #e2e8f0',
@@ -413,7 +413,7 @@ const Login = () => {
                     type="button"
                     onClick={generateCaptcha}
                     style={{
-                      padding: '14px',
+                      padding: '13px',
                       background: '#f1f5f9',
                       border: '2px solid #e2e8f0',
                       borderRadius: '12px',
@@ -436,7 +436,7 @@ const Login = () => {
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    padding: '14px 16px',
+                    padding: '13px 16px',
                     border: captchaError ? '2px solid #ef4444' : '2px solid #e2e8f0',
                     borderRadius: '12px',
                     fontSize: '16px',
@@ -464,7 +464,7 @@ const Login = () => {
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  padding: '16px',
+                  padding: '15px',
                   background: loading 
                     ? '#cbd5e0' 
                     : 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
@@ -475,7 +475,7 @@ const Login = () => {
                   fontWeight: '600',
                   cursor: loading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.3s ease',
-                  marginBottom: '18px',
+                  marginBottom: '16px',
                   letterSpacing: '0.5px'
                 }}
               >

@@ -5,7 +5,7 @@ const agendaController = {
   async getAllAgenda(req, res) {
     try {
       const { date, month, year } = req.query;
-      
+
       console.log("=== ENHANCED AGENDA DEBUG ===");
       console.log("Query params:", { date, month, year });
 
@@ -14,14 +14,16 @@ const agendaController = {
 
       // Filter berdasarkan tanggal jika ada
       if (date) {
-        whereConditions.push("(DATE(a.tanggal_agenda) = ? OR DATE(a.tanggal_konfirmasi) = ?)");
-        queryParams.push(date, date);
+        whereConditions.push("DATE(a.tanggal_agenda) = ?");
+        queryParams.push(date);
+
         console.log("Filtering by date:", date);
       }
 
-      const whereClause = whereConditions.length > 0 
-        ? "WHERE " + whereConditions.join(" AND ") 
-        : "";
+      const whereClause =
+        whereConditions.length > 0
+          ? "WHERE " + whereConditions.join(" AND ")
+          : "";
 
       // IMPROVED Query dengan proper time formatting
       const query = `
@@ -72,19 +74,26 @@ const agendaController = {
       const [agenda] = await db.execute(query, queryParams);
 
       console.log("Found agenda items:", agenda.length);
-      
+
       // Process agenda items for better display - FIXED to send proper field names
-      const processedAgenda = agenda.map(item => {
+      const processedAgenda = agenda.map((item) => {
         // Use formatted time if available, otherwise fallback to raw time
-        const displayTime = item.letter_jenis === 'undangan' 
-          ? (item.formatted_undangan_pukul || (item.undangan_pukul_raw ? item.undangan_pukul_raw.slice(0, 5) : null))
-          : (item.formatted_audiensi_pukul || (item.audiensi_pukul_raw ? item.audiensi_pukul_raw.slice(0, 5) : null));
+        const displayTime =
+          item.letter_jenis === "undangan"
+            ? item.formatted_undangan_pukul ||
+              (item.undangan_pukul_raw
+                ? item.undangan_pukul_raw.slice(0, 5)
+                : null)
+            : item.formatted_audiensi_pukul ||
+              (item.audiensi_pukul_raw
+                ? item.audiensi_pukul_raw.slice(0, 5)
+                : null);
 
         console.log(`Processing agenda ${item.id}:`, {
           letter_jenis: item.letter_jenis,
           formatted_undangan_pukul: item.formatted_undangan_pukul,
           formatted_audiensi_pukul: item.formatted_audiensi_pukul,
-          final_display_time: displayTime
+          final_display_time: displayTime,
         });
 
         // FIXED: Create letter_details object that frontend expects
@@ -94,35 +103,41 @@ const agendaController = {
           audiensi_pukul: item.formatted_audiensi_pukul,
           pukul: displayTime, // Generic pukul field
           display_time: displayTime,
-          
+
           // Add other details
           undangan_tempat: item.undangan_tempat,
           audiensi_tempat: item.audiensi_tempat,
-          tempat: item.letter_jenis === 'undangan' ? item.undangan_tempat : item.audiensi_tempat,
-          
+          tempat:
+            item.letter_jenis === "undangan"
+              ? item.undangan_tempat
+              : item.audiensi_tempat,
+
           // Undangan specific
           jenis_acara: item.jenis_acara,
           dress_code: item.dress_code,
           rsvp_required: item.rsvp_required,
           undangan_dokumentasi: item.undangan_dokumentasi,
-          
+
           // Audiensi specific
           nama_pemohon: item.nama_pemohon,
           instansi_organisasi: item.instansi_organisasi,
           jumlah_peserta: item.jumlah_peserta,
           topik_audiensi: item.topik_audiensi,
           audiensi_dokumentasi: item.audiensi_dokumentasi,
-          
+
           // Common
-          perihal: item.letter_perihal
+          perihal: item.letter_perihal,
         };
 
         return {
           ...item,
           display_time: displayTime,
-          display_tempat: item.letter_jenis === 'undangan' ? item.undangan_tempat : item.audiensi_tempat,
+          display_tempat:
+            item.letter_jenis === "undangan"
+              ? item.undangan_tempat
+              : item.audiensi_tempat,
           letter_details: JSON.stringify(letterDetails), // Send as JSON string like frontend expects
-          jenis_surat: item.letter_jenis // Make sure this field is available
+          jenis_surat: item.letter_jenis, // Make sure this field is available
         };
       });
 
@@ -138,8 +153,8 @@ const agendaController = {
             server_date: new Date().toISOString(),
             filter_date: date,
             query_executed: query,
-            params_used: queryParams
-          }
+            params_used: queryParams,
+          },
         },
       });
     } catch (error) {
@@ -214,15 +229,23 @@ const agendaController = {
       }
 
       const agendaData = agenda[0];
-      
+
       // Process the data for better display
       const processedData = {
         ...agendaData,
         // Use formatted time (HH:MM) for display
-        undangan_pukul: agendaData.formatted_undangan_pukul || (agendaData.undangan_pukul ? agendaData.undangan_pukul.slice(0, 5) : null),
-        audiensi_pukul: agendaData.formatted_audiensi_pukul || (agendaData.audiensi_pukul ? agendaData.audiensi_pukul.slice(0, 5) : null)
+        undangan_pukul:
+          agendaData.formatted_undangan_pukul ||
+          (agendaData.undangan_pukul
+            ? agendaData.undangan_pukul.slice(0, 5)
+            : null),
+        audiensi_pukul:
+          agendaData.formatted_audiensi_pukul ||
+          (agendaData.audiensi_pukul
+            ? agendaData.audiensi_pukul.slice(0, 5)
+            : null),
       };
-      
+
       console.log("Processed agenda data to send:", processedData);
 
       res.json({
@@ -323,7 +346,7 @@ const agendaController = {
         tanggal,
         tanggal,
         pukul,
-        tempat || 'Tempat akan ditentukan',
+        tempat || "Tempat akan ditentukan",
         deskripsi,
         jenis_agenda,
         peserta,
@@ -341,7 +364,7 @@ const agendaController = {
           judul,
           tanggal,
           pukul,
-          tempat: tempat || 'Tempat akan ditentukan',
+          tempat: tempat || "Tempat akan ditentukan",
         },
       });
     } catch (error) {
@@ -386,7 +409,7 @@ const agendaController = {
         tanggal,
         tanggal,
         pukul,
-        tempat || 'Tempat akan ditentukan',
+        tempat || "Tempat akan ditentukan",
         deskripsi,
         jenis_agenda,
         peserta,
@@ -411,7 +434,7 @@ const agendaController = {
           judul,
           tanggal,
           pukul,
-          tempat: tempat || 'Tempat akan ditentukan',
+          tempat: tempat || "Tempat akan ditentukan",
         },
       });
     } catch (error) {

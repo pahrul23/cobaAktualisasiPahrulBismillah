@@ -1259,22 +1259,44 @@ const lettersController = {
     }
   },
 
-  // Get stats by type untuk dashboard
+  // Get stats by type untuk dashboard - UPDATED WITH MONTHLY DATA
   async getStatsByType(req, res) {
     try {
-      const query = `
-        SELECT 
-          jenis,
-          COUNT(*) as count
-        FROM letters 
-        WHERE YEAR(created_at) = 2025 
-        GROUP BY jenis 
-        ORDER BY jenis
-      `;
+      console.log("📊 Fetching stats by type with monthly data...");
 
-      const [results] = await db.execute(query);
+      // Query 1: Total per jenis untuk tahun berjalan
+      const statsQuery = `
+      SELECT 
+        jenis,
+        COUNT(*) as count
+      FROM letters
+      WHERE YEAR(created_at) = YEAR(CURRENT_DATE())
+      GROUP BY jenis
+      ORDER BY jenis
+    `;
 
-      // Pastikan semua jenis surat ada
+      // Query 2: Data per bulan per jenis untuk tahun berjalan
+      const monthlyQuery = `
+      SELECT 
+        jenis,
+        MONTH(created_at) as bulan,
+        COUNT(*) as jumlah
+      FROM letters
+      WHERE YEAR(created_at) = YEAR(CURRENT_DATE())
+      GROUP BY jenis, MONTH(created_at)
+      ORDER BY jenis, bulan
+    `;
+
+      const [statsResults] = await db.execute(statsQuery);
+      const [monthlyResults] = await db.execute(monthlyQuery);
+
+      console.log("✅ Stats Results:", statsResults);
+      console.log("✅ Monthly Results:", monthlyResults);
+
+      // Format data bulanan per jenis
+      const monthlyData = {};
+
+      // Inisialisasi array 12 bulan (Jan-Des) untuk setiap jenis
       const allJenis = [
         "pengaduan",
         "pemberitahuan",
@@ -1282,24 +1304,125 @@ const lettersController = {
         "undangan",
         "proposal",
       ];
+      allJenis.forEach((jenis) => {
+        monthlyData[jenis] = Array(12).fill(0); // Index 0=Jan, 11=Des
+      });
+
+      // Isi data dari database
+      monthlyResults.forEach((row) => {
+        const monthIndex = row.bulan - 1; // MySQL MONTH() returns 1-12, array needs 0-11
+        if (monthlyData[row.jenis]) {
+          monthlyData[row.jenis][monthIndex] = parseInt(row.jumlah);
+        }
+      });
+
+      console.log("📅 Monthly Data Structure:", monthlyData);
+
+      // Gabungkan stats dengan data bulanan
       const completeData = allJenis.map((jenis) => {
-        const found = results.find((row) => row.jenis === jenis);
+        const found = statsResults.find((s) => s.jenis === jenis);
         return {
           jenis: jenis,
           count: found ? parseInt(found.count) : 0,
-          monthlyData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          monthlyData: monthlyData[jenis] || Array(12).fill(0),
         };
       });
+
+      console.log("✅ Complete Data to Frontend:", completeData);
 
       res.json({
         success: true,
         data: completeData,
+        timestamp: new Date().toISOString(),
+        year: new Date().getFullYear(),
       });
     } catch (error) {
-      console.error("Error fetching stats by type:", error);
-      res.json({
+      console.error("❌ Error fetching stats by type:", error);
+      res.status(500).json({
         success: false,
+        message: "Failed to fetch statistics",
         data: [],
+        error: error.message,
+      });
+    }
+  },
+  // Get summary statistics (untuk card total surat, bulan ini, dll)
+  async getStatsSummary(req, res) {
+    try {
+      console.log("📊 Fetching stats summary...");
+
+      const query = `
+      SELECT 
+        COUNT(*) as total_all_time,
+        COUNT(CASE WHEN YEAR(created_at) = YEAR(CURRENT_DATE()) THEN 1 END) as total_tahun_ini,
+        COUNT(CASE WHEN YEAR(created_at) = YEAR(CURRENT_DATE()) 
+                    AND MONTH(created_at) = MONTH(CURRENT_DATE()) THEN 1 END) as total_bulan_ini,
+        COUNT(CASE WHEN DATE(created_at) = CURRENT_DATE() THEN 1 END) as total_hari_ini,
+        COUNT(CASE WHEN status = 'baru' THEN 1 END) as status_baru,
+        COUNT(CASE WHEN status = 'diproses' THEN 1 END) as status_diproses,
+        COUNT(CASE WHEN status = 'selesai' THEN 1 END) as status_selesai
+      FROM letters
+    `;
+
+      const [results] = await db.execute(query);
+
+      console.log("✅ Summary Results:", results[0]);
+
+      res.json({
+        success: true,
+        data: results[0],
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("❌ Error fetching stats summary:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch summary statistics",
+        error: error.message,
+      });
+    }
+  },
+
+  // Get recent letters untuk notifikasi dashboard
+  async getRecentLetters(req, res) {
+    try {
+      const limit = req.query.limit || 5;
+
+      console.log(`📬 Fetching ${limit} recent letters...`);
+
+      const query = `
+      SELECT 
+        id,
+        jenis,
+        no_surat,
+        no_disposisi,
+        asal_surat,
+        perihal,
+        tanggal_terima,
+        tanggal_surat,
+        status,
+        label,
+        created_at
+      FROM letters
+      ORDER BY created_at DESC
+      LIMIT ?
+    `;
+
+      const [results] = await db.execute(query, [parseInt(limit)]);
+
+      console.log(`✅ Found ${results.length} recent letters`);
+
+      res.json({
+        success: true,
+        data: results,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("❌ Error fetching recent letters:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch recent letters",
+        error: error.message,
       });
     }
   },

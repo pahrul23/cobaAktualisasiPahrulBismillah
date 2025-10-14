@@ -98,4 +98,113 @@ const getMe = async (req, res) => {
   }
 };
 
-module.exports = { login, getMe };
+// ... kode login dan getMe yang sudah ada di atas ...
+
+// ============================================
+// METHOD BARU: Check Email
+// ============================================
+const checkEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Email harus diisi' }
+      });
+    }
+
+    // Cek email di database
+    const [rows] = await pool.execute(
+      'SELECT id, name, email FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (rows.length === 0) {
+      return res.json({
+        success: false,
+        error: { message: 'Email tidak ditemukan di sistem.' }
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Email ditemukan',
+      data: { email: rows[0].email, name: rows[0].name }
+    });
+
+  } catch (error) {
+    console.error('Check email error:', error);
+    res.status(500).json({
+      success: false,
+      error: { message: 'Terjadi kesalahan saat memeriksa email' }
+    });
+  }
+};
+
+// ============================================
+// METHOD BARU: Reset Password
+// ============================================
+const resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Email dan password baru harus diisi' }
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Password minimal 6 karakter' }
+      });
+    }
+
+    // Cek email
+    const [rows] = await pool.execute(
+      'SELECT id FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Email tidak ditemukan' }
+      });
+    }
+
+    // Hash password baru
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await pool.execute(
+      'UPDATE users SET password = ?, updated_at = NOW() WHERE email = ?',
+      [hashedPassword, email]
+    );
+
+    console.log('Password reset successfully for:', email);
+
+    res.json({
+      success: true,
+      message: 'Password berhasil direset'
+    });
+
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      success: false,
+      error: { message: 'Terjadi kesalahan saat mereset password' }
+    });
+  }
+};
+
+// UPDATE module.exports - TAMBAHKAN 2 method baru
+module.exports = { 
+  login, 
+  getMe,
+  checkEmail,      // BARU
+  resetPassword    // BARU
+};

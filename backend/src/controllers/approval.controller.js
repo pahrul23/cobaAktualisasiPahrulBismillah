@@ -1,5 +1,6 @@
 const db = require('../config/database');
 
+
 class ApprovalController {
   // Get all undangan data with agenda status
   static async getUndanganApproval(req, res) {
@@ -38,6 +39,7 @@ class ApprovalController {
     }
   }
 
+
   // Get all audiensi data with agenda status
   static async getAudiensiApproval(req, res) {
     try {
@@ -75,6 +77,7 @@ class ApprovalController {
       });
     }
   }
+
 
   // Get combined approval data for dashboard
   static async getAllApprovalData(req, res) {
@@ -153,7 +156,9 @@ class ApprovalController {
     }
   }
 
-  // Update agenda status (attendance confirmation)
+
+  // ==================== KODE YANG DIPERBAIKI ====================
+  // Update agenda status (attendance confirmation) - FIXED VERSION
   static async updateAgendaStatus(req, res) {
     const { letterId } = req.params;
     const { 
@@ -216,53 +221,45 @@ class ApprovalController {
         tanggal_agenda = audiensiData[0]?.hari_tanggal || null;
       }
 
-      // Check if agenda record already exists
-      const checkQuery = `
-        SELECT id FROM agenda 
+      // 🐛 DEBUG LOG
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📅 Backend Update Agenda Status:');
+      console.log('   Letter ID:', letterId);
+      console.log('   Jenis:', jenis_surat);
+      console.log('   Tanggal Agenda (dari DB):', tanggal_agenda);
+      console.log('   Tanggal Sekarang (CURDATE):', new Date().toISOString().split('T')[0]);
+      console.log('   Status:', status_kehadiran);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // ⭐ PERBAIKAN 1: HAPUS SEMUA DUPLICATE ENTRY LAMA
+      const deleteOldQuery = `
+        DELETE FROM agenda 
         WHERE letter_id = ? AND jenis_surat = ?
       `;
-      const [existing] = await db.execute(checkQuery, [letterId, jenis_surat]);
-
-      let result;
+      const [deleteResult] = await db.execute(deleteOldQuery, [letterId, jenis_surat]);
       
-      if (existing.length > 0) {
-        // Update existing record
-        const updateQuery = `
-          UPDATE agenda 
-          SET status_kehadiran = ?, 
-              catatan_kehadiran = ?, 
-              tanggal_konfirmasi = CURRENT_TIMESTAMP,
-              tanggal_agenda = ?,
-              updated_at = CURRENT_TIMESTAMP
-          WHERE letter_id = ? AND jenis_surat = ?
-        `;
-        
-        [result] = await db.execute(updateQuery, [
-          status_kehadiran, 
-          catatan_kehadiran, 
-          tanggal_agenda,
-          letterId, 
-          jenis_surat
-        ]);
-        
-      } else {
-        // Insert new record
-        const insertQuery = `
-          INSERT INTO agenda 
-          (letter_id, jenis_surat, status_kehadiran, catatan_kehadiran, 
-           tanggal_konfirmasi, tanggal_agenda, created_by, created_at, updated_at) 
-          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `;
-        
-        [result] = await db.execute(insertQuery, [
-          letterId, 
-          jenis_surat, 
-          status_kehadiran, 
-          catatan_kehadiran,
-          tanggal_agenda,
-          created_by
-        ]);
+      if (deleteResult.affectedRows > 0) {
+        console.log(`🗑️  Deleted ${deleteResult.affectedRows} old agenda entries for letter ${letterId}`);
       }
+
+      // ⭐ PERBAIKAN 2: INSERT BARU (bukan update)
+      const insertQuery = `
+        INSERT INTO agenda 
+        (letter_id, jenis_surat, status_kehadiran, catatan_kehadiran, 
+         tanggal_konfirmasi, tanggal_agenda, created_by, created_at, updated_at) 
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `;
+      
+      const [result] = await db.execute(insertQuery, [
+        letterId, 
+        jenis_surat, 
+        status_kehadiran, 
+        catatan_kehadiran,
+        tanggal_agenda,  // ⭐ PENTING: Tanggal acara dari database
+        created_by
+      ]);
+
+      console.log(`✅ Inserted new agenda entry with tanggal_agenda: ${tanggal_agenda}`);
 
       // Create notification for staff
       await ApprovalController.createAttendanceNotification(
@@ -286,7 +283,7 @@ class ApprovalController {
       });
 
     } catch (error) {
-      console.error('Error in updateAgendaStatus:', error);
+      console.error('❌ Error in updateAgendaStatus:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to update agenda status',
@@ -294,11 +291,12 @@ class ApprovalController {
       });
     }
   }
+  // ==================== END PERBAIKAN ====================
+
 
   // Create attendance notification for staff
   static async createAttendanceNotification(letterId, jenisAcara, statusKehadiran, catatan) {
     try {
-      // Get letter details
       const letterQuery = `
         SELECT perihal, asal_surat, tanggal_terima 
         FROM letters 
@@ -330,6 +328,7 @@ class ApprovalController {
       console.error('Error creating attendance notification:', error);
     }
   }
+
 
   // Get approval statistics
   static async getApprovalStats(req, res) {
@@ -365,6 +364,7 @@ class ApprovalController {
       });
     }
   }
+
 
   // Get specific letter details for approval
   static async getLetterDetails(req, res) {
@@ -429,6 +429,7 @@ class ApprovalController {
     }
   }
 
+
   // Get agenda list for calendar/schedule view
   static async getAgendaList(req, res) {
     try {
@@ -490,5 +491,6 @@ class ApprovalController {
     }
   }
 }
+
 
 module.exports = ApprovalController;
