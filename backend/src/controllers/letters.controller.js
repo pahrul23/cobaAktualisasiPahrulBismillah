@@ -882,8 +882,20 @@ const lettersController = {
   // Generate PDF function
   async generatePDF(req, res) {
     try {
-      const { letterId } = req.params;
-      console.log("=== GENERATING PDF FOR LETTER ID:", letterId, "===");
+      const { id } = req.params; // ✅ Ambil "id" bukan "letterId"
+      const letterId = id; // ✅ Assign ke variabel letterId
+
+      // Validasi yang benar
+      if (!letterId || letterId === "undefined" || letterId === "null") {
+        console.error("❌ ERROR: Letter ID is missing or undefined");
+        console.error("❌ req.params:", req.params);
+        return res.status(400).json({
+          success: false,
+          message: "Letter ID tidak valid atau tidak ditemukan",
+        });
+      }
+
+      console.log("✅ GENERATING PDF FOR LETTER ID:", letterId, "===");
 
       const query = `
       SELECT 
@@ -901,6 +913,7 @@ const lettersController = {
       const [letters] = await db.execute(query, [letterId]);
 
       if (letters.length === 0) {
+        console.error("❌ Letter not found for ID:", letterId);
         return res.status(404).json({
           success: false,
           message: "Surat tidak ditemukan",
@@ -908,6 +921,8 @@ const lettersController = {
       }
 
       const letter = letters[0];
+
+      // ... rest of your PDF generation code stays the same
 
       const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString("id-ID", {

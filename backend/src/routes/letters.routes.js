@@ -1,44 +1,18 @@
-// Path: /backend/src/routes/letters.routes.js
 const express = require('express')
 const router = express.Router()
+// const lettersController = require('../src/controllers/letters.controller')
 const lettersController = require('../controllers/letters.controller')
-const authMiddleware = require('../middlewares/auth.middleware')
 
-// Apply auth middleware to all routes
-// router.use(authMiddleware)
 
-// ==========================================
-// PENTING: Routes dengan path spesifik HARUS di atas route dengan :id
-// ==========================================
-
-// GET /api/letters/stats - Get dashboard statistics  
-router.get('/stats', lettersController.getDashboardStats)
-
-// GET /api/letters/stats-by-type - TAMBAHKAN INI untuk dashboard
+// ✅ Route spesifik HARUS DI ATAS
 router.get('/stats-by-type', lettersController.getStatsByType)
+router.get('/:id/pdf', lettersController.generatePDF)  // ⬆️ PINDAH KE SINI
 
-// GET /api/letters - Get all letters dengan filtering dan pagination
+// ✅ Route umum di bawah  
 router.get('/', lettersController.getAllLetters)
-
-// GET /api/letters/:id/pdf - Generate PDF (harus sebelum /:id)
-router.get('/:id/pdf', lettersController.generatePDF)
-
-// GET /api/letters/:id - Get single letter dengan detail
 router.get('/:id', lettersController.getLetterById)
-
-// POST /api/letters - Create new letter dengan file upload
-router.post('/', 
-  lettersController.uploadFile,
-  lettersController.createLetter
-)
-
-// PUT /api/letters/:id - Update letter
-router.put('/:id', 
-  lettersController.uploadFile,
-  lettersController.updateLetter
-)
-
-// DELETE /api/letters/:id - Delete letter
+router.post('/', lettersController.uploadFile, lettersController.createLetter)
+router.put('/:id', lettersController.uploadFile, lettersController.updateLetter)
 router.delete('/:id', lettersController.deleteLetter)
 
 module.exports = router
