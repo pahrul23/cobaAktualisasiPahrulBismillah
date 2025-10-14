@@ -911,7 +911,7 @@ const SettingsPage = () => {
                           padding: '4px'
                         }}
                       >
-                        {showPasswords.current ? '👁️' : '🙈'}
+                        {showPasswords.current ? '👁️' : '😴'}
                       </button>
                     </div>
                   </div>
@@ -960,7 +960,7 @@ const SettingsPage = () => {
                           padding: '4px'
                         }}
                       >
-                        {showPasswords.new ? '👁️' : '🙈'}
+                        {showPasswords.new ? '👁️' : '😴'}
                       </button>
                     </div>
                     <p style={{
@@ -1016,7 +1016,7 @@ const SettingsPage = () => {
                           padding: '4px'
                         }}
                       >
-                        {showPasswords.confirm ? '👁️' : '🙈'}
+                        {showPasswords.confirm ? '👁️' : '😴'}
                       </button>
                     </div>
                   </div>

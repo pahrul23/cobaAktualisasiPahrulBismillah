@@ -29,10 +29,13 @@ import ApprovalCenter from "./pages/Ketua/ApprovalCenter/ApprovalCenter";
 import ApprovalUndangan from "./pages/Ketua/ApprovalCenter/ApprovalUndangan";
 import ApprovalAudiensi from "./pages/Ketua/ApprovalCenter/ApprovalAudiensi";
 // import ForgotPassword from './pages/ForgotPassword'
-import ForgotPassword from './components/ForgotPassword'
+import ForgotPassword from "./components/ForgotPassword";
 
 // TAMBAHKAN INI: Import ProposalList untuk Ketua
 import KetuaProposalList from "./pages/Ketua/Proposal/ProposalList";
+// Di bagian atas
+import KetuaAgendaList from "./pages/Ketua/Agenda/AgendaList";
+import KetuaSettingsPage from "./pages/Ketua/Settings/SettingsPage";
 
 // NEW: Placeholder pages untuk ketua (sementara)
 const PlaceholderPage = ({ title }) => (
@@ -127,17 +130,15 @@ function App() {
                     path="surat/disposisi"
                     element={<PlaceholderPage title="Manajemen Disposisi" />}
                   />
-                  
-                  {/* GANTI INI: Route Proposal untuk Ketua */}
-                  <Route
-                    path="proposal"
-                    element={<KetuaProposalList />}
-                  />
 
+                  {/* GANTI INI: Route Proposal untuk Ketua */}
+                  <Route path="proposal" element={<KetuaProposalList />} />
+
+                  {/* Agenda */}
                   {/* Agenda */}
                   <Route
                     path="agenda"
-                    element={<PlaceholderPage title="Agenda Ketua" />}
+                    element={<KetuaAgendaList />} // ✅ GANTI INI!
                   />
 
                   {/* Notifikasi */}
@@ -149,7 +150,7 @@ function App() {
                   {/* Settings */}
                   <Route
                     path="settings"
-                    element={<PlaceholderPage title="Pengaturan Ketua" />}
+                    element={<KetuaSettingsPage />} // ✅ GANTI JADI INI
                   />
 
                   {/* Catch all untuk ketua */}
