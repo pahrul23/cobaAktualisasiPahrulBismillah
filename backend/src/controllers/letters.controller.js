@@ -604,16 +604,16 @@ const lettersController = {
             label = ?, status = ?, updated_at = CURRENT_TIMESTAMP
       `;
       let queryParams = [
-        no_disposisi,
-        no_surat,
-        asal_surat,
-        perihal,
-        tanggal_terima,
-        tanggal_surat,
-        uraian,
-        keterangan,
-        label,
-        status,
+        nodisposisi || null,
+        nosurat || null,
+        asalsurat || null,
+        perihal || null,
+        tanggalterima || null,
+        tanggalsurat || null,
+        uraian || null,
+        keterangan || null,
+        label || null,
+        status || null,
       ];
 
       if (shouldUpdateFile) {

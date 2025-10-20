@@ -2625,7 +2625,7 @@ const LandingPage = () => {
                   letterSpacing: "2px",
                 }}
               >
-                STAF PELAKSANA
+                STAF SEKRETARIAT KETUA DPD RI
               </span>
             </div>
           </div>
@@ -3107,7 +3107,7 @@ const LandingPage = () => {
             <span style={{ fontSize: "0.9rem" }}>
               CPNS Penata Kelola Sistem dan Teknologi Informasi
               <br />
-              Bagian Pengelolaan Sistem Informasi Biro Sindok Setjen{" "}
+              Bagian Pengelolaan Sistem Informasi Biro Sistem Informasi dan Dokumentasi Sekretariat Jenderal{" "}
               <strong
                 style={{
                   color: "#0ea5e9",
